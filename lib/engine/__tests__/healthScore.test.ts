@@ -8,11 +8,9 @@ function makeDebt(overrides: Partial<Debt> = {}): Debt {
   return {
     id: "test-debt",
     name: "Test Debt",
-    provider: "Test",
-    totalOriginalAmount: 1_000_000,
     installments: [
-      { dueDate: "2026-07-25", amount: 500_000, isPaid: true },
-      { dueDate: "2026-08-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: true },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-08-25", amount: 500_000, isPaid: false },
     ],
     ...overrides,
   };
@@ -26,6 +24,7 @@ function makeGoal(overrides: Partial<SavingsGoal> = {}): SavingsGoal {
     targetAmount: 5_000_000,
     currentAmount: 2_500_000,
     monthlyContribution: 500_000,
+    createdAt: "2026-06-01T00:00:00.000Z",
     milestonesReached: [25, 50],
     ...overrides,
   };
@@ -50,8 +49,8 @@ describe("getHealthScore", () => {
   it("returns red band for worst-case scenario", () => {
     const debt = makeDebt({
       installments: [
-        { dueDate: "2026-07-25", amount: 500_000, isPaid: false },
-        { dueDate: "2026-08-25", amount: 500_000, isPaid: false },
+        { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: false },
+        { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-08-25", amount: 500_000, isPaid: false },
       ],
     });
     const goal = makeGoal({ currentAmount: 0 });
@@ -82,8 +81,8 @@ describe("getHealthScore", () => {
   it("gives 25 debt points when all debts are paid off", () => {
     const paidDebt = makeDebt({
       installments: [
-        { dueDate: "2026-07-25", amount: 500_000, isPaid: true },
-        { dueDate: "2026-08-25", amount: 500_000, isPaid: true },
+        { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: true },
+        { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-08-25", amount: 500_000, isPaid: true },
       ],
     });
     const result = getHealthScore("on-track", [paidDebt], [], 0.5, 0.5);

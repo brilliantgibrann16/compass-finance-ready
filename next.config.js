@@ -11,7 +11,7 @@ const nextConfig = {
   },
   typescript: {
     // Memaksa Next.js mengabaikan type error dari file luar (seperti supabase edge functions) saat production build
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };
 

@@ -5,7 +5,6 @@ import type { TransferSettings } from "../../types";
 
 // ── Fixtures ──────────────────────────────────────────────────────────
 const defaultSettings: TransferSettings = {
-  balance: 750_000,
   dayOne: 1,
   dayTwo: 15,
   amountPerTransfer: 750_000,

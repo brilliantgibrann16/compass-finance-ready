@@ -13,13 +13,11 @@ function makeDebt(overrides: Partial<Debt> = {}): Debt {
   return {
     id: "gopay-pinjam",
     name: "GoPay Pinjam",
-    provider: "GoPay",
-    totalOriginalAmount: 2_000_000,
     installments: [
-      { dueDate: "2026-06-25", amount: 500_000, isPaid: true },
-      { dueDate: "2026-07-25", amount: 500_000, isPaid: false },
-      { dueDate: "2026-08-25", amount: 500_000, isPaid: false },
-      { dueDate: "2026-09-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-25", amount: 500_000, isPaid: true },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-08-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-09-25", amount: 500_000, isPaid: false },
     ],
     ...overrides,
   };
@@ -28,11 +26,9 @@ function makeDebt(overrides: Partial<Debt> = {}): Debt {
 const fullyPaidDebt: Debt = {
   id: "spaylater",
   name: "SPayLater",
-  provider: "Shopee",
-  totalOriginalAmount: 600_000,
   installments: [
-    { dueDate: "2026-05-15", amount: 300_000, isPaid: true },
-    { dueDate: "2026-06-15", amount: 300_000, isPaid: true },
+    { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-05-15", amount: 300_000, isPaid: true },
+    { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-15", amount: 300_000, isPaid: true },
   ],
 };
 
@@ -166,7 +162,7 @@ describe("getMonthlyTimeline", () => {
       id: "debt-2",
       name: "Debt 2",
       installments: [
-        { dueDate: "2026-07-25", amount: 200_000, isPaid: false },
+        { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 200_000, isPaid: false },
       ],
     };
     const timeline = getMonthlyTimeline([makeDebt(), debt2]);

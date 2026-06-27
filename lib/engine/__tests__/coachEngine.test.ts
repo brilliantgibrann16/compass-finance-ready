@@ -7,7 +7,6 @@ import type { Transaction, Debt, SavingsGoal, WishlistItem, TransferSettings } f
 const today = new Date("2026-06-20");
 
 const settings: TransferSettings = {
-  balance: 750_000,
   dayOne: 1,
   dayTwo: 15,
   amountPerTransfer: 750_000,
@@ -30,11 +29,9 @@ const baseDebts: Debt[] = [
   {
     id: "gopay",
     name: "GoPay Pinjam",
-    provider: "GoPay",
-    totalOriginalAmount: 2_000_000,
     installments: [
-      { dueDate: "2026-06-25", amount: 500_000, isPaid: false },
-      { dueDate: "2026-07-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-25", amount: 500_000, isPaid: false },
+      { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: false },
     ],
   },
 ];
@@ -47,6 +44,7 @@ const baseGoals: SavingsGoal[] = [
     targetAmount: 5_000_000,
     currentAmount: 500_000,
     monthlyContribution: 200_000,
+    createdAt: "2026-06-01T00:00:00.000Z",
     milestonesReached: [],
   },
 ];
@@ -101,8 +99,8 @@ describe("generateCoachTips", () => {
       {
         ...baseDebts[0],
         installments: [
-          { dueDate: "2026-06-25", amount: 500_000, isPaid: true },
-          { dueDate: "2026-07-25", amount: 500_000, isPaid: false },
+          { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-25", amount: 500_000, isPaid: true },
+          { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-07-25", amount: 500_000, isPaid: false },
         ],
       },
     ];
@@ -124,8 +122,7 @@ describe("generateCoachTips", () => {
         id: "headphones",
         name: "Headphones",
         targetAmount: 500_000,
-        savedAmount: 400_000,
-        imageUrl: "",
+        savedAmount: 400_000, monthlyContribution: 0, priority: "medium", 
         createdAt: "2026-06-01",
       },
     ];

@@ -89,7 +89,6 @@ describe("Insights Engine", () => {
 
   describe("generateInsights", () => {
     const settings: TransferSettings = {
-      balance: 750_000,
       dayOne: 1,
       dayTwo: 15,
       amountPerTransfer: 750_000,
@@ -122,7 +121,8 @@ describe("Insights Engine", () => {
           targetAmount: 5_000_000,
           currentAmount: 1_000_000,
           monthlyContribution: 200_000,
-          milestonesReached: [],
+          createdAt: "2026-06-01T00:00:00.000Z",
+    milestonesReached: [],
         },
       ];
       const insights = generateInsights(txs, emptyDebts, goals, emptyWishlist, settings, today);
@@ -162,7 +162,8 @@ describe("Insights Engine", () => {
           targetAmount: 1000,
           currentAmount: 0,
           monthlyContribution: 50_000, // 50k of 1.5M = ~3%
-          milestonesReached: [],
+          createdAt: "2026-06-01T00:00:00.000Z",
+    milestonesReached: [],
         },
       ];
       const insights = generateInsights([], emptyDebts, lowSavingsGoal, emptyWishlist, settings, today);
@@ -177,7 +178,8 @@ describe("Insights Engine", () => {
           targetAmount: 1000,
           currentAmount: 0,
           monthlyContribution: 400_000, // 400k of 1.5M = ~27%
-          milestonesReached: [],
+          createdAt: "2026-06-01T00:00:00.000Z",
+    milestonesReached: [],
         },
       ];
       const insightsHigh = generateInsights([], emptyDebts, highSavingsGoal, emptyWishlist, settings, today);

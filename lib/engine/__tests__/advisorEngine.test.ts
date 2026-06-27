@@ -60,7 +60,7 @@ const goals: SavingsGoal[] = [
     currentAmount: 3500000,
     targetDate: "2029-09-01",
     monthlyContribution: 600000,
-    createdAt: "2026-01-01",
+    createdAt: "2026-06-01T00:00:00.000Z",
     milestonesReached: [],
   },
   {
@@ -70,7 +70,7 @@ const goals: SavingsGoal[] = [
     targetAmount: 10000000,
     currentAmount: 7500000,
     monthlyContribution: 200000,
-    createdAt: "2026-01-01",
+    createdAt: "2026-06-01T00:00:00.000Z",
     milestonesReached: [],
   },
 ];
@@ -181,7 +181,8 @@ describe("Advisor Engine Tests", () => {
     const zeroGoals: SavingsGoal[] = [{
       id: "g-zero", name: "No Contribution", type: "custom",
       targetAmount: 1000000, currentAmount: 0,
-      monthlyContribution: 0, createdAt: "2026-01-01", milestonesReached: [],
+      monthlyContribution: 0, createdAt: "2026-06-01T00:00:00.000Z",
+    milestonesReached: [],
     }];
     const gf = getGoalForecasts(zeroGoals, TODAY);
     expect(gf[0]!.estimatedMonths).toBe(-1);

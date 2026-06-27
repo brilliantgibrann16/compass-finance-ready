@@ -26,8 +26,7 @@ class ResizeObserverMock {
   disconnect() {}
 }
 if (typeof globalThis.ResizeObserver === "undefined") {
-  // @ts-expect-error - polyfill intentionally minimal
-  globalThis.ResizeObserver = ResizeObserverMock;
+    globalThis.ResizeObserver = ResizeObserverMock;
 }
 
 // 5. Polyfill: window.matchMedia
@@ -56,8 +55,7 @@ class IntersectionObserverMock {
   takeRecords(): IntersectionObserverEntry[] { return []; }
 }
 if (typeof globalThis.IntersectionObserver === "undefined") {
-  // @ts-expect-error - polyfill intentionally minimal
-  globalThis.IntersectionObserver = IntersectionObserverMock;
+    globalThis.IntersectionObserver = IntersectionObserverMock;
 }
 
 // 7. Polyfill: scrollTo

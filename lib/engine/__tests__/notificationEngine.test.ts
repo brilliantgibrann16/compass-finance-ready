@@ -8,10 +8,9 @@ const today = new Date("2026-06-20");
 
 function makeAppData(overrides: Partial<AppData> = {}): AppData {
   return {
-    balance: 750_000,
+    balance: 0,
     transactions: [],
     transferSettings: {
-      balance: 750_000,
       dayOne: 1,
       dayTwo: 15,
       amountPerTransfer: 750_000,
@@ -39,10 +38,8 @@ describe("generateNotifications", () => {
         {
           id: "gopay",
           name: "GoPay Pinjam",
-          provider: "GoPay",
-          totalOriginalAmount: 500_000,
           installments: [
-            { dueDate: "2026-06-23", amount: 500_000, isPaid: false }, // 3 days from Jun 20
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-23", amount: 500_000, isPaid: false }, // 3 days from Jun 20
           ],
         },
       ],
@@ -60,10 +57,8 @@ describe("generateNotifications", () => {
         {
           id: "spaylater",
           name: "SPayLater",
-          provider: "Shopee",
-          totalOriginalAmount: 300_000,
           installments: [
-            { dueDate: "2026-06-21", amount: 300_000, isPaid: false }, // tomorrow
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-21", amount: 300_000, isPaid: false }, // tomorrow
           ],
         },
       ],
@@ -79,10 +74,8 @@ describe("generateNotifications", () => {
         {
           id: "d1",
           name: "Debt Today",
-          provider: "Test",
-          totalOriginalAmount: 100_000,
           installments: [
-            { dueDate: "2026-06-20", amount: 100_000, isPaid: false },
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-20", amount: 100_000, isPaid: false },
           ],
         },
       ],
@@ -98,10 +91,8 @@ describe("generateNotifications", () => {
         {
           id: "d2",
           name: "Overdue Debt",
-          provider: "Test",
-          totalOriginalAmount: 200_000,
           installments: [
-            { dueDate: "2026-06-18", amount: 200_000, isPaid: false }, // 2 days overdue
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-18", amount: 200_000, isPaid: false }, // 2 days overdue
           ],
         },
       ],
@@ -118,10 +109,8 @@ describe("generateNotifications", () => {
         {
           id: "d3",
           name: "Paid Debt",
-          provider: "Test",
-          totalOriginalAmount: 100_000,
           installments: [
-            { dueDate: "2026-06-23", amount: 100_000, isPaid: true },
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-23", amount: 100_000, isPaid: true },
           ],
         },
       ],
@@ -161,7 +150,8 @@ describe("generateNotifications", () => {
           targetAmount: 10_000_000,
           currentAmount: 5_000_000, // 50%
           monthlyContribution: 500_000,
-          milestonesReached: [25], // 50 not yet reached
+          createdAt: "2026-06-01T00:00:00.000Z",
+    milestonesReached: [25], // 50 not yet reached
         },
       ],
     });
@@ -178,8 +168,7 @@ describe("generateNotifications", () => {
           id: "phone",
           name: "New Phone",
           targetAmount: 4_000_000,
-          savedAmount: 2_500_000, // ~63%
-          imageUrl: "",
+          savedAmount: 2_500_000, monthlyContribution: 0, priority: "medium",  // ~63%
           createdAt: "2026-01-01",
         },
       ],
@@ -196,8 +185,7 @@ describe("generateNotifications", () => {
           id: "book",
           name: "Textbook",
           targetAmount: 200_000,
-          savedAmount: 200_000,
-          imageUrl: "",
+          savedAmount: 200_000, monthlyContribution: 0, priority: "medium", 
           createdAt: "2026-01-01",
         },
       ],
@@ -214,10 +202,8 @@ describe("generateNotifications", () => {
         {
           id: "d",
           name: "Test",
-          provider: "T",
-          totalOriginalAmount: 100_000,
           installments: [
-            { dueDate: "2026-06-23", amount: 100_000, isPaid: false },
+            { id: "inst-" + Math.random().toString(36).slice(2), dueDate: "2026-06-23", amount: 100_000, isPaid: false },
           ],
         },
       ],
