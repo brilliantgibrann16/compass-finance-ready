@@ -15,39 +15,27 @@ jobs:
         with:
           node-version: 22
 
-      - name: Auto-Detect Project Root & Install
-        run: |
-          ROOT_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/package.json//')
-          echo "PROJECT_ROOT=$ROOT_DIR" >> $GITHUB_ENV
-          cd "$ROOT_DIR"
-          npm ci
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Export Static Next.js
-        run: |
-          cd ${{ env.PROJECT_ROOT }}
-          npm run build
+        run: npm run build
 
       - name: Sync Capacitor iOS
         run: |
-          cd ${{ env.PROJECT_ROOT }}
           mkdir -p out
-          if [ ! -f "out/index.html" ]; then
-            echo "<html><body>Fallback</body></html>" > out/index.html
-          fi
           npx cap sync ios
 
       - name: Build Xcode Project (Unsigned IPA)
         run: |
-          XCODE_DIR=$(find . -name "App.xcworkspace" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/App.xcworkspace//')
-          cd "$XCODE_DIR"
+          cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
           mkdir -p build/Payload
           cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
           cd build && zip -r CompassFinance.ipa Payload/
-          echo "IPA_PATH=$XCODE_DIR/build/CompassFinance.ipa" >> $GITHUB_ENV
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Compass-Finance-iOS-IPA
-          path: "**/build/CompassFinance.ipa"
+          path: ios/App/build/CompassFinance.ipa
