@@ -1,0 +1,5 @@
+supabase/
+compass-finance-final-main/
+node_modules/
+.next/
+out/
