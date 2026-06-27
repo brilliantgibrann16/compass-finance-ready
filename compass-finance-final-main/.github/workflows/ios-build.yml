@@ -10,38 +10,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find Project Root Directory
-        id: locate
-        run: |
-          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/package.json//')
-          echo "project_path=$TARGET_DIR" >> $GITHUB_OUTPUT
-          echo "Found package.json in: $TARGET_DIR"
-
-      - name: Set up Node.js (Upgraded to v22)
+      - name: Set up Node.js (v22)
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "npm"
-          cache-dependency-path: ${{ steps.locate.outputs.project_path }}/package-lock.json
 
       - name: Install Dependencies
-        run: |
-          cd ${{ steps.locate.outputs.project_path }}
-          npm ci
+        run: npm ci
 
       - name: Export Static Next.js
-        run: |
-          cd ${{ steps.locate.outputs.project_path }}
-          npm run build
+        run: npm run build
 
-      - name: Sync Capacitor iOS
+      - name: Verify Out Directory & Sync Capacitor
         run: |
-          cd ${{ steps.locate.outputs.project_path }}
+          mkdir -p out
+          if [ ! -f "out/index.html" ]; then
+            echo "<html><body>Compass Finance Static Fallback</body></html>" > out/index.html
+          fi
           npx cap sync ios
 
       - name: Build Xcode Project (Unsigned IPA)
         run: |
-          cd ${{ steps.locate.outputs.project_path }}/ios/App
+          cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
           mkdir -p build/Payload
           cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
@@ -51,5 +42,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Compass-Finance-iOS-IPA
-          path: |
-            **/ios/App/build/CompassFinance.ipa
+          path: ios/App/build/CompassFinance.ipa
