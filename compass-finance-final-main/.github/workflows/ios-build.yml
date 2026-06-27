@@ -1,103 +1,55 @@
-name: iOS Build (Unsigned IPA)
-
-# Compiles the Capacitor-wrapped Compass Finance web app into an unsigned
-# development .ipa entirely on GitHub's macOS runners — no local Mac required.
+name: Build iOS IPA
 on:
   push:
-    branches: [main, master]
-  workflow_dispatch: {}
+    branches: [main]
 
 jobs:
-  build-ios:
-    name: Build unsigned Compass Finance .ipa
+  build:
     runs-on: macos-latest
-    timeout-minutes: 40
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Find Project Root Directory
+        id: locate
+        run: |
+          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/package.json//')
+          echo "project_path=$TARGET_DIR" >> $GITHUB_OUTPUT
+          echo "Found package.json in: $TARGET_DIR"
+
+      - name: Set up Node.js (Upgraded to v22)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: ${{ steps.locate.outputs.project_path }}/package-lock.json
 
-      # Capacitor's SPM package (ios/App/CapApp-SPM) references the @capacitor/*
-      # packages in node_modules via local file paths, so deps MUST exist before
-      # xcodebuild runs the archive.
-      - name: Install dependencies
-        run: npm ci || npm install
-
-      # Next.js static export. output:'export' is gated behind MOBILE_EXPORT in
-      # next.config.js. The POST /api/sync route handler is incompatible with
-      # static export, so move it aside for this build and restore it after.
-      - name: Build static web bundle (Next.js export)
-        env:
-          MOBILE_EXPORT: 'true'
+      - name: Install Dependencies
         run: |
-          if [ -d app/api ]; then
-            mv app/api "${RUNNER_TEMP}/compass-api-backup"
-            echo "moved app/api aside for static export"
-          fi
-          set +e
+          cd ${{ steps.locate.outputs.project_path }}
+          npm ci
+
+      - name: Export Static Next.js
+        run: |
+          cd ${{ steps.locate.outputs.project_path }}
           npm run build
-          BUILD_CODE=$?
-          set -e
-          if [ -d "${RUNNER_TEMP}/compass-api-backup" ]; then
-            mv "${RUNNER_TEMP}/compass-api-backup" app/api
-            echo "restored app/api"
-          fi
-          test $BUILD_CODE -eq 0
-          test -f out/index.html
 
-      - name: Sync web assets into the iOS project
-        run: npx --yes cap sync ios
-
-      - name: List Xcode schemes (diagnostic)
-        run: xcodebuild -list -project ios/App/App.xcodeproj
-
-      - name: Resolve Swift Package dependencies
+      - name: Sync Capacitor iOS
         run: |
-          xcodebuild -resolvePackageDependencies \
-            -project ios/App/App.xcodeproj \
-            -scheme App
+          cd ${{ steps.locate.outputs.project_path }}
+          npx cap sync ios
 
-      # Unsigned archive. We disable code signing entirely; this produces an
-      # .app that is NOT installable on a device without resigning, but is a
-      # valid build artifact for inspection / downstream signing.
-      - name: Archive (unsigned) with xcodebuild
+      - name: Build Xcode Project (Unsigned IPA)
         run: |
-          xcodebuild \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath "${RUNNER_TEMP}/App.xcarchive" \
-            clean archive \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM=""
+          cd ${{ steps.locate.outputs.project_path }}/ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          cd build && zip -r CompassFinance.ipa Payload/
 
-      # Unsigned IPAs cannot be produced by -exportArchive (it requires signing),
-      # so package the .app manually into the canonical Payload/ structure.
-      - name: Package unsigned .ipa
-        run: |
-          APP_PATH="${RUNNER_TEMP}/App.xcarchive/Products/Applications/App.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "::error::App.app not found at $APP_PATH"; exit 1
-          fi
-          rm -rf "${RUNNER_TEMP}/Payload"
-          mkdir -p "${RUNNER_TEMP}/Payload"
-          cp -R "$APP_PATH" "${RUNNER_TEMP}/Payload/"
-          ( cd "${RUNNER_TEMP}" && zip -qry "Compass Finance.ipa" Payload )
-          ls -lh "${RUNNER_TEMP}/Compass Finance.ipa"
-
-      - name: Upload .ipa artifact
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: compass-finance-unsigned-ipa
-          path: ${{ runner.temp }}/Compass Finance.ipa
-          if-no-files-found: error
-          retention-days: 14
+          name: Compass-Finance-iOS-IPA
+          path: |
+            **/ios/App/build/CompassFinance.ipa
