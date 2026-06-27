@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // <-- WAJIB TAMBAHKAN BARIS INI
+  output: 'export',
   images: {
-    unoptimized: true, // Disarankan untuk export statis mobile agar gambar tidak pecah
-  },
-  // ... konfigurasi lu yang lain jika ada
+    unoptimized: true
+  }
 };
 
 module.exports = nextConfig;
