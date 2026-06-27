@@ -28,10 +28,13 @@ jobs:
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compass Finance</title></head><body><div id="__next">Loading...</div></body></html>' > out/index.html
           fi
 
-      - name: Add and Sync iOS Platform from Scratch
+      - name: Clean and Rebuild iOS Platform
         run: |
-          # Buat ulang platform iOS langsung di server agar file Xcode lengkap & pasti ada
-          npx cap add ios || true
+          # Hapus folder ios lama yang cacat/setengah matang di server cloud
+          rm -rf ios
+
+          # Paksa Capacitor membuat ulang folder ios fresh dari nol
+          npx cap add ios
           npx cap sync ios
 
       - name: Build Xcode Project (Unsigned IPA)
