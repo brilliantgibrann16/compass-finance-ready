@@ -20,6 +20,18 @@ export default function ScanPage() {
   const hydrated = useHydrated();
   const addTransaction = useAppStore((s) => s.addTransaction);
 
+  // ── Capacitor safe-mount guard ───────────────────────────────────────
+  // On iOS/Capacitor (capacitor://localhost), top-level component rendering
+  // can attempt to resolve relative asset paths (tessdata/, worker scripts)
+  // before the client JS runtime is fully bootstrapped, causing a blank
+  // black screen. We gate ALL scanner UI behind this flag so nothing
+  // browser-specific executes until useEffect confirms we're on the client.
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
@@ -124,10 +136,14 @@ export default function ScanPage() {
     };
   }, []);
 
-  if (!hydrated) {
+  // ── Pre-mount fallback (Capacitor / SSR) ─────────────────────────────
+  if (!isClient || !hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
+          <p className="p-4 text-sm text-white/60">Loading scanner…</p>
+        </div>
       </div>
     );
   }

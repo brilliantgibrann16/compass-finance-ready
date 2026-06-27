@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { AppShell } from "@/components/ui/AppShell";
 
 export const metadata: Metadata = {
   title: "Compass — Daily Money Command Center",
@@ -21,6 +22,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: "#0B0E14",
 };
 
@@ -46,7 +48,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="Compass" />
       </head>
       <body className="font-body antialiased">
-        <PageTransition>{children}</PageTransition>
+        <AppShell>
+          <PageTransition>{children}</PageTransition>
+        </AppShell>
         {/* Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{

@@ -17,6 +17,10 @@ body {
   color: #f5f3ee;
   font-family: var(--font-body);
   -webkit-tap-highlight-color: transparent;
+  /* iOS safe-area: respect notch (top) and home indicator bar (bottom) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  min-height: 100vh;
 }
 
 * {
@@ -101,3 +105,136 @@ body::before {
     radial-gradient(45% 40% at 90% 5%, rgba(16, 185, 129, 0.16), transparent 70%),
     radial-gradient(65% 55% at 50% 110%, rgba(240, 180, 41, 0.10), transparent 70%);
 }
+
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Splash Screen — Opening animation keyframes
+   ───────────────────────────────────────────────────────────────────────── */
+
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b0e14;
+  transition: opacity 0.5s ease-out;
+}
+.splash-overlay.splash-fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ambient aurora glow rings */
+.splash-aurora {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0;
+  animation: splash-aurora-pulse 2s ease-out forwards;
+}
+.splash-aurora-1 {
+  width: 300px; height: 300px;
+  top: 15%; left: 10%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
+  animation-delay: 0.1s;
+}
+.splash-aurora-2 {
+  width: 250px; height: 250px;
+  top: 20%; right: 5%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25), transparent 70%);
+  animation-delay: 0.3s;
+}
+.splash-aurora-3 {
+  width: 350px; height: 350px;
+  bottom: 10%; left: 30%;
+  background: radial-gradient(circle, rgba(240, 180, 41, 0.2), transparent 70%);
+  animation-delay: 0.5s;
+}
+
+@keyframes splash-aurora-pulse {
+  0%   { opacity: 0; transform: scale(0.6); }
+  50%  { opacity: 1; }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+/* Centered content container */
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  opacity: 0;
+  transform: scale(0.85) translateY(12px);
+  animation: splash-content-in 1s ease-out 0.3s forwards;
+}
+
+@keyframes splash-content-in {
+  0%   { opacity: 0; transform: scale(0.85) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Compass icon with glow */
+.splash-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.splash-icon::after {
+  content: "";
+  position: absolute;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 180, 41, 0.25), transparent 60%);
+  animation: splash-icon-glow 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes splash-icon-glow {
+  0%   { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Title */
+.splash-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #f5f3ee;
+  letter-spacing: -0.02em;
+}
+
+/* Subtitle */
+.splash-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: #8A93A6;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Loading bar */
+.splash-loader {
+  width: 120px;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+.splash-loader-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #F0B429, #34D399);
+  animation: splash-loader-sweep 2s ease-in-out forwards;
+}
+
+@keyframes splash-loader-sweep {
+  0%   { width: 0%; }
+  60%  { width: 70%; }
+  100% { width: 100%; }
+}
+

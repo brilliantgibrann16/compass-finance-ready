@@ -5,6 +5,7 @@ import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { formatNumberID } from "@/lib/utils/currency";
 import { Settings } from "lucide-react";
+import { RealtimeClock } from "@/components/ui/RealtimeClock";
 
 function getGreeting(hour: number): string {
   if (hour < 11) return "Good morning";
@@ -31,6 +32,9 @@ export function DashboardHeader({
       <div>
         <BrandLogo size="md" className="mb-2" />
         <p className="text-sm text-ink-muted">{greeting}</p>
+        <div className="mt-1 mb-1.5">
+          <RealtimeClock />
+        </div>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
           Available balance
         </p>
