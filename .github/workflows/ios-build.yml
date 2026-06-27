@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p out
           if [ ! -f "out/index.html" ]; then
-            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compass Finance</title></head><body><div id="__next">Loading Compass Finance OS...</div></body></html>' > out/index.html
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compass Finance</title></head><body><div id="__next">Loading...</div></body></html>' > out/index.html
           fi
 
       - name: Sync Capacitor iOS
@@ -33,8 +33,18 @@ jobs:
 
       - name: Build Xcode Project (Unsigned IPA)
         run: |
-          cd ios/App
+          # Cari lokasi folder yang berisi App.xcworkspace secara presisi
+          WORKSPACE_PATH=$(find . -name "App.xcworkspace" -not -path "*/node_modules/*" | head -n 1)
+          TARGET_DIR=$(dirname "$WORKSPACE_PATH")
+
+          echo "=== BERPINDAH KE DIREKTORI XCODE ==="
+          echo "Target direktori: $TARGET_DIR"
+          cd "$TARGET_DIR"
+
+          echo "=== MEMULAI KOMPILASI XCODEBUILD ==="
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+
+          echo "=== MEMBUNGKUS MENJADI IPA ==="
           mkdir -p build/Payload
           cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
           cd build && zip -r CompassFinance.ipa Payload/
@@ -43,4 +53,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Compass-Finance-iOS-IPA
-          path: ios/App/build/CompassFinance.ipa
+          path: "**/build/CompassFinance.ipa"
