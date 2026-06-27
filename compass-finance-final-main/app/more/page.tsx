@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { useAppStore } from "@/lib/store";
+import { useHydrated } from "@/lib/useHydrated";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Brain, FileText, CreditCard,
@@ -93,45 +94,95 @@ const REQUIRED_FIELDS = [
   "notifications",
 ] as const;
 
-/** Shallow validation: confirms the JSON has the right shape before we inject
- *  it into localStorage. We check top-level keys and rough types — deep
- *  schema validation isn't worth the complexity for a personal finance app
- *  where the user is restoring their OWN backup. */
-function validateBackup(data: unknown): { valid: boolean; error?: string } {
+const ARRAY_FIELDS = ["transactions", "debts", "savingsGoals", "wishlist", "notifications"] as const;
+const MAX_BACKUP_ARRAY_LENGTH = 10_000;
+
+type BackupEnvelope = { state: Record<string, unknown>; version: number };
+
+const hasOwn = (obj: Record<string, unknown>, key: string) =>
+  Object.prototype.hasOwnProperty.call(obj, key);
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+function hasPollutionKey(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasPollutionKey);
+  if (!isPlainRecord(value)) return false;
+  for (const key of Object.keys(value)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") return true;
+    if (hasPollutionKey(value[key])) return true;
+  }
+  return false;
+}
+
+function isSafeArrayField(value: unknown): value is unknown[] {
+  return (
+    Array.isArray(value) &&
+    value.length <= MAX_BACKUP_ARRAY_LENGTH &&
+    value.every((entry) => isPlainRecord(entry))
+  );
+}
+
+function validateBackup(data: unknown): { valid: true; raw: string } | { valid: false; error: string } {
   if (data === null || typeof data !== "object") {
     return { valid: false, error: "File does not contain a valid JSON object." };
   }
 
+  if (!isPlainRecord(data) || hasPollutionKey(data)) {
+    return { valid: false, error: "Backup contains unsafe object keys." };
+  }
+
   const obj = data as Record<string, unknown>;
 
-  // Zustand persist wraps the state inside { state: { ... }, version: N }.
-  // If we find that envelope, validate the inner state instead.
-  const statePayload =
-    obj.state && typeof obj.state === "object" ? (obj.state as Record<string, unknown>) : obj;
+  if (!hasOwn(obj, "state") || !hasOwn(obj, "version")) {
+    return { valid: false, error: "Backup must be a Zustand envelope with state and version." };
+  }
+
+  if (!isPlainRecord(obj.state)) {
+    return { valid: false, error: '"state" must be a JSON object.' };
+  }
+
+  if (typeof obj.version !== "number" || !Number.isFinite(obj.version)) {
+    return { valid: false, error: '"version" must be a finite number.' };
+  }
+
+  const statePayload = obj.state;
 
   for (const field of REQUIRED_FIELDS) {
-    if (!(field in statePayload)) {
+    if (!hasOwn(statePayload, field)) {
       return { valid: false, error: `Missing required field: "${field}".` };
     }
   }
 
-  if (typeof statePayload.balance !== "number") {
-    return { valid: false, error: '"balance" must be a number.' };
-  }
-  if (!Array.isArray(statePayload.transactions)) {
-    return { valid: false, error: '"transactions" must be an array.' };
-  }
-  if (!Array.isArray(statePayload.debts)) {
-    return { valid: false, error: '"debts" must be an array.' };
-  }
-  if (!Array.isArray(statePayload.savingsGoals)) {
-    return { valid: false, error: '"savingsGoals" must be an array.' };
-  }
-  if (!Array.isArray(statePayload.wishlist)) {
-    return { valid: false, error: '"wishlist" must be an array.' };
+  if (typeof statePayload.balance !== "number" || !Number.isFinite(statePayload.balance)) {
+    return { valid: false, error: '"balance" must be a finite number.' };
   }
 
-  return { valid: true };
+  if (!isPlainRecord(statePayload.transferSettings)) {
+    return { valid: false, error: '"transferSettings" must be an object.' };
+  }
+
+  for (const field of ARRAY_FIELDS) {
+    if (!isSafeArrayField(statePayload[field])) {
+      return {
+        valid: false,
+        error: `"${field}" must be an array of objects with at most ${MAX_BACKUP_ARRAY_LENGTH} entries.`,
+      };
+    }
+  }
+
+  const sanitizedEnvelope: BackupEnvelope = {
+    state: REQUIRED_FIELDS.reduce<Record<string, unknown>>((acc, field) => {
+      acc[field] = statePayload[field];
+      return acc;
+    }, {}),
+    version: obj.version,
+  };
+
+  return { valid: true, raw: JSON.stringify(sanitizedEnvelope) };
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +201,7 @@ interface ToastState {
 // ---------------------------------------------------------------------------
 
 export default function MorePage() {
+  const hydrated = useHydrated();
   const unreadCount = useAppStore((s) => s.notifications.filter((n) => !n.isRead).length);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -212,9 +264,19 @@ export default function MorePage() {
           return;
         }
 
+        const trimmed = text.trim();
+        if (trimmed.length === 0) {
+          flash("Invalid file — backup is empty.", "error");
+          return;
+        }
+        if (trimmed.length > 5_000_000) {
+          flash("Invalid file — backup is too large.", "error");
+          return;
+        }
+
         let parsed: unknown;
         try {
-          parsed = JSON.parse(text);
+          parsed = JSON.parse(trimmed);
         } catch {
           flash("Invalid file — not valid JSON.", "error");
           return;
@@ -227,7 +289,7 @@ export default function MorePage() {
         }
 
         // Stash the validated payload and ask for confirmation
-        setPendingRestore(text);
+        setPendingRestore(check.raw);
         setShowConfirm(true);
       };
 
@@ -253,6 +315,20 @@ export default function MorePage() {
     setShowConfirm(false);
     setPendingRestore(null);
   }, []);
+
+  if (!hydrated) {
+    return (
+      <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
+        <div className="mb-6 h-16 animate-pulse rounded-xl bg-bg-hover" />
+        <div className="space-y-3">
+          <div className="h-20 animate-pulse rounded-xl border border-border-soft bg-bg-raised" />
+          <div className="h-20 animate-pulse rounded-xl border border-border-soft bg-bg-raised" />
+          <div className="h-20 animate-pulse rounded-xl border border-border-soft bg-bg-raised" />
+        </div>
+        <BottomNav />
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">

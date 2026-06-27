@@ -9,12 +9,26 @@ import { SyncCoordinator, type EnqueueInput } from "@/lib/syncCoordinator";
 const SYNC_ENDPOINT =
   (process.env.NEXT_PUBLIC_SYNC_ENDPOINT ?? "").trim() || "/api/sync";
 const QUEUE_STORAGE_KEY = "compass-sync-queue";
+const SYNC_ENABLED = (process.env.NEXT_PUBLIC_SYNC_ENABLED ?? "").toLowerCase() === "true";
 
 let coordinator: SyncCoordinator | null = null;
 
+function isNativeStaticExport(): boolean {
+  if (typeof window === "undefined") return false;
+  const capacitor = (window as typeof window & { Capacitor?: unknown }).Capacitor;
+  return window.location.protocol === "file:" || typeof capacitor !== "undefined";
+}
+
+function shouldStartSync(): boolean {
+  if (typeof window === "undefined") return false;
+  if (!SYNC_ENABLED) return false;
+  if (isNativeStaticExport() && SYNC_ENDPOINT === "/api/sync") return false;
+  return true;
+}
+
 /** Lazily create the client-only singleton coordinator. */
 export function getSyncCoordinator(): SyncCoordinator | null {
-  if (typeof window === "undefined") return null;
+  if (!shouldStartSync()) return null;
   if (!coordinator) {
     coordinator = new SyncCoordinator({
       endpoint: SYNC_ENDPOINT,
@@ -26,6 +40,7 @@ export function getSyncCoordinator(): SyncCoordinator | null {
 
 /** Enqueue a mutation durably, then opportunistically flush to the server. */
 export function enqueueSync(input: EnqueueInput): void {
+  if (!shouldStartSync()) return;
   const c = getSyncCoordinator();
   if (!c) return;
   void c
@@ -60,7 +75,7 @@ let started = false;
  * session, then mirror each persisted-slice change into the durable queue.
  */
 export function startSync(store: SubscribableStore): void {
-  if (typeof window === "undefined" || started) return;
+  if (!shouldStartSync() || started) return;
   const c = getSyncCoordinator();
   if (!c) return;
   started = true;
