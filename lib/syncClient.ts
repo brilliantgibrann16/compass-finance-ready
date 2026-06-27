@@ -46,9 +46,10 @@ export function enqueueSync(input: EnqueueInput): void {
   void c
     .enqueue(input)
     .then(() => c.syncNow())
-    .catch(() => {
+    .catch((err: unknown) => {
       // Failures stay in the durable queue and are retried by the
       // coordinator's polling loop + connectivity listeners.
+      console.warn("[SyncClient] enqueueSync failed, will retry:", err instanceof Error ? err.message : err);
     });
 }
 
@@ -80,7 +81,9 @@ export function startSync(store: SubscribableStore): void {
   if (!c) return;
   started = true;
 
-  void c.syncNow().catch(() => {});
+  void c.syncNow().catch((err: unknown) => {
+    console.warn("[SyncClient] initial sync flush failed, will retry:", err instanceof Error ? err.message : err);
+  });
 
   store.subscribe((state, prev) => {
     if (state.balance !== prev.balance) {

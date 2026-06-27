@@ -33,6 +33,7 @@ export default function ScanPage() {
   }, []);
 
   const [scanState, setScanState] = useState<ScanState>("idle");
+  const [scanError, setScanError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -61,7 +62,10 @@ export default function ScanPage() {
       setDate(scanResult.date);
       setCategory(scanResult.category);
       setScanState("result");
-    } catch {
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "An unexpected error occurred";
+      console.error("[Scanner] Receipt processing failed:", reason);
+      setScanError(reason);
       setScanState("error");
     }
   }, []);
@@ -105,6 +109,7 @@ export default function ScanPage() {
 
   function resetState() {
     setScanState("idle");
+    setScanError(null);
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
     setResult(null);
     setMerchant("");
@@ -119,6 +124,7 @@ export default function ScanPage() {
     // Fully dehydrate the scanner so NO data from the prior scan session can leak
     // into the next one. Empty ALL scanner state first, switch the view LAST.
     setResult(null);          // clears itemized breakdown (items) + confidence source
+    setScanError(null);       // clear any prior scan error
     setMerchant("");          // clear merchant input
     setAmount("");            // clear parsed total amount
     setDate("");              // clear date input
@@ -382,7 +388,9 @@ export default function ScanPage() {
               <AlertCircle size={28} className="text-coral" />
             </div>
             <p className="font-medium text-ink">Scanning failed</p>
-            <p className="text-sm text-ink-muted">The image couldn&apos;t be processed. Try a clearer photo.</p>
+            <p className="text-sm text-ink-muted">
+              {scanError ?? "The image couldn\u0027t be processed. Try a clearer photo."}
+            </p>
             <button
               onClick={resetState}
               className="flex items-center gap-2 rounded-xl border border-border-soft px-6 py-3 font-medium text-ink transition hover:border-gold/30"

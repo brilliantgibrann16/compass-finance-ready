@@ -57,7 +57,8 @@ export default function ReportsPage() {
       const finalWidth = imgHeight > pageHeight - 20 ? (canvas.width * finalHeight) / canvas.height : imgWidth;
       pdf.addImage(imgData, "PNG", 10, 10, finalWidth, finalHeight);
       pdf.save(`compass-report-${report.month}.pdf`);
-    } catch {
+    } catch (error) {
+      console.error("[Reports] PDF export failed, falling back to browser print:", error instanceof Error ? error.message : error);
       window.print();
     } finally {
       setExporting(false);

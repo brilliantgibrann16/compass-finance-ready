@@ -393,7 +393,8 @@ export class SyncCoordinator {
         rejectedIds,
         serverTime: data && typeof data.serverTime === "string" ? data.serverTime : undefined,
       };
-    } catch {
+    } catch (error) {
+      console.warn("[SyncCoordinator] Failed to parse sync response body:", this.describeError(error));
       return { accepted: 0, rejected: 0 };
     }
   }
@@ -550,8 +551,8 @@ export class SyncCoordinator {
             typeof c.payload.id === "string"
         ) as PendingChange[];
       }
-    } catch {
-      // Corrupt payload — start clean rather than crash the app.
+    } catch (error) {
+      console.warn("[SyncCoordinator] Corrupt queue in storage, starting clean:", this.describeError(error));
     }
   }
 
@@ -562,8 +563,8 @@ export class SyncCoordinator {
     if (!storage) return;
     try {
       storage.setItem(this.storageKey, JSON.stringify(this.queue));
-    } catch {
-      // Quota exceeded or serialization failure — non-fatal for the in-memory path.
+    } catch (error) {
+      console.warn("[SyncCoordinator] Failed to persist queue (quota exceeded or serialization error):", this.describeError(error));
     }
   }
 

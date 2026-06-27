@@ -298,7 +298,9 @@ export async function scanReceipt(imageFile: File | Blob): Promise<ReceiptScanRe
       (control) => runOcr(imageFile, imageToken, control),
       OCR_TIMEOUT_MS
     );
-  } catch {
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn("[OCR] Tesseract pipeline failed, falling back to mock result:", reason);
     return buildMockResult(imageToken);
   }
 }
@@ -354,7 +356,16 @@ async function runOcr(
  * Lightweight scan from a data URL (for camera captures).
  */
 export async function scanReceiptFromUrl(dataUrl: string): Promise<ReceiptScanResult> {
-  const response = await fetch(dataUrl);
+  let response: Response;
+  try {
+    response = await fetch(dataUrl);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch receipt image: ${reason}`);
+  }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch receipt image: HTTP ${response.status}`);
+  }
   const blob = await response.blob();
   return scanReceipt(blob);
 }
