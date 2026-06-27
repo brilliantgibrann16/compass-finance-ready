@@ -14,8 +14,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
-          cache-dependency-path: compass-finance-final-main/package-lock.json
 
       - name: Install Dependencies
         run: |
