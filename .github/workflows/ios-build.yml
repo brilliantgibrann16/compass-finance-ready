@@ -15,30 +15,26 @@ jobs:
         with:
           node-version: 22
           cache: "npm"
+          cache-dependency-path: compass-finance-final-main/package-lock.json
 
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          cd compass-finance-final-main
+          npm ci
 
       - name: Export Static Next.js
         run: |
-          # Memastikan Next.js melakukan export statis secara paksa
-          NEXT_PRIVATE_LOCAL_WEBPACK=true npm run build
+          cd compass-finance-final-main
+          npm run build
 
-      - name: Verify Out Directory & Sync Capacitor
+      - name: Sync Capacitor iOS
         run: |
-          # Trik aman: jika folder out belum ada karena next.config, kita buatkan dummy agar tidak crash
-          mkdir -p out
-          if [ ! -f "out/index.html" ]; then
-            echo "<html><body>Compass Finance Static Fallback</body></html>" > out/index.html
-          fi
-          echo "=== MEMERIKSA ISI FOLDER WORKSPACE ==="
-          ls -la
-          echo "======================================"
+          cd compass-finance-final-main
           npx cap sync ios
 
       - name: Build Xcode Project (Unsigned IPA)
         run: |
-          cd ios/App
+          cd compass-finance-final-main/ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
           mkdir -p build/Payload
           cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
@@ -48,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Compass-Finance-iOS-IPA
-          path: ios/App/build/CompassFinance.ipa
+          path: compass-finance-final-main/ios/App/build/CompassFinance.ipa
