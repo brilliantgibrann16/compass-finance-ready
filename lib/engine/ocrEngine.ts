@@ -130,13 +130,13 @@ function detectCategoryFromReceipt(text: string, merchant: string): CategoryId {
 // ---------------------------------------------------------------------------
 // Deterministic mock fallback
 // ---------------------------------------------------------------------------
-// Real OCR (Tesseract.js) downloads its WASM core, worker script, and language
-// training data from a CDN at runtime and spawns a web worker. In offline,
-// sandboxed, or strict-CSP environments (our Content-Security-Policy limits
-// connect-src to 'self'), those network/worker requests are blocked and
-// createWorker()/recognize() throw. Rather than surface a hard "Scanning
-// failed" error, we degrade gracefully to a deterministic, high-fidelity mock
-// receipt so the upload flow always yields a valid, editable transaction.
+// Real OCR (Tesseract.js) downloads its WASM core + worker script from a CDN
+// and loads language training data from public/tessdata/ (local, same-origin).
+// In environments where the WASM core can't load (strict CSP, missing WebAssembly
+// support, or the worker fails to init), recognize() throws. Rather than surface
+// a hard "Scanning failed" error, we degrade gracefully to a deterministic,
+// high-fidelity mock receipt so the upload flow always yields a valid, editable
+// transaction.
 
 // ---------------------------------------------------------------------------
 // Mock receipt datasets
@@ -228,16 +228,59 @@ function buildMockResult(imageInput: File | string | null = null): ReceiptScanRe
  *  UI never hangs on "Scanning receipt...". */
 const OCR_TIMEOUT_MS = 3000;
 
-function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+interface OcrRunControl {
+  signal: AbortSignal;
+  registerWorker: (worker: { terminate: () => Promise<unknown> }) => void;
+}
+
+function withAbortableTimeout<T>(
+  workFactory: (control: OcrRunControl) => Promise<T>,
+  ms: number
+): Promise<T> {
+  const controller = new AbortController();
+  const workers = new Set<{ terminate: () => Promise<unknown> }>();
+  let settled = false;
+
+  const terminateWorkers = () => {
+    for (const worker of workers) {
+      void worker.terminate().catch(() => {});
+    }
+    workers.clear();
+  };
+
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("OCR_TIMEOUT")), ms);
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      controller.abort();
+      terminateWorkers();
+      reject(new Error("OCR_TIMEOUT"));
+    }, ms);
+
+    const work = workFactory({
+      signal: controller.signal,
+      registerWorker: (worker) => {
+        if (controller.signal.aborted || settled) {
+          void worker.terminate().catch(() => {});
+          return;
+        }
+        workers.add(worker);
+      },
+    });
+
     work.then(
       (value) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
+        workers.clear();
         resolve(value);
       },
       (err) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
+        terminateWorkers();
         reject(err);
       }
     );
@@ -251,7 +294,10 @@ export async function scanReceipt(imageFile: File | Blob): Promise<ReceiptScanRe
     // Race the entire OCR pipeline (import + worker download + recognize)
     // against a 3s ceiling. Any slowness or failure degrades INSTANTLY to the
     // deterministic mock, so the scanner UI can never get stuck loading.
-    return await withTimeout(runOcr(imageFile, imageToken), OCR_TIMEOUT_MS);
+    return await withAbortableTimeout(
+      (control) => runOcr(imageFile, imageToken, control),
+      OCR_TIMEOUT_MS
+    );
   } catch {
     return buildMockResult(imageToken);
   }
@@ -259,16 +305,29 @@ export async function scanReceipt(imageFile: File | Blob): Promise<ReceiptScanRe
 
 /** The actual Tesseract pipeline, isolated so scanReceipt can race it against a
  *  timeout without leaving the UI hung if the worker never resolves. */
-async function runOcr(imageFile: File | Blob, imageToken: File | null): Promise<ReceiptScanResult> {
+async function runOcr(
+  imageFile: File | Blob,
+  imageToken: File | null,
+  control: OcrRunControl
+): Promise<ReceiptScanResult> {
+  if (control.signal.aborted) throw new Error("OCR_ABORTED");
+
   // Dynamic import to avoid SSR issues and code-split Tesseract.js
   const { createWorker } = await import("tesseract.js");
 
+  if (control.signal.aborted) throw new Error("OCR_ABORTED");
+
   const worker = await createWorker("ind+eng", undefined, {
+    langPath: "/tessdata",
     logger: () => {}, // Suppress verbose logging
   });
+  control.registerWorker(worker);
+
+  if (control.signal.aborted) throw new Error("OCR_ABORTED");
 
   try {
     const { data } = await worker.recognize(imageFile);
+    if (control.signal.aborted) throw new Error("OCR_ABORTED");
     const rawText = data.text;
     const extraction = extractAll(rawText);
 
@@ -287,7 +346,7 @@ async function runOcr(imageFile: File | Blob, imageToken: File | null): Promise<
       rawText,
     };
   } finally {
-    void worker.terminate();
+    await worker.terminate().catch(() => {});
   }
 }
 

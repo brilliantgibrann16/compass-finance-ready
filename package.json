@@ -15,7 +15,6 @@
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
-    "@supabase/supabase-js": "^2.45.4",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "framer-motion": "^11.3.19",

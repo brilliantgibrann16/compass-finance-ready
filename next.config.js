@@ -30,12 +30,10 @@ const nextConfig = {
       "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com",
       "img-src 'self' data: blob:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com",
-      // worker-src blob: + the CDN origins above are REQUIRED by Tesseract.js v5:
-      // it spawns a Web Worker from a blob URL and fetches the WASM core, worker
-      // script, and *.traineddata language packs from jsdelivr/unpkg + the
-      // projectnaptha tessdata mirror at runtime. Without these the real OCR
-      // path is CSP-blocked and /scan silently degrades to the mock fallback.
+      "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
+      // worker-src blob: is REQUIRED by Tesseract.js v5: it spawns a Web Worker
+      // from a blob URL. Language packs (*.traineddata) are served from
+      // public/tessdata/ (same-origin), so no extra connect-src is needed for them.
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
