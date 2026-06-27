@@ -15,6 +15,11 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install Cocoapods (Kunci Utama Xcode Workspace)
+        run: |
+          sudo gem install cocoapods
+          pod --version
+
       - name: Install Dependencies
         run: npm ci
 
@@ -28,12 +33,9 @@ jobs:
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compass Finance</title></head><body><div id="__next">Loading...</div></body></html>' > out/index.html
           fi
 
-      - name: Clean and Rebuild iOS Platform
+      - name: Fresh Generation of Capacitor iOS
         run: |
-          # Hapus folder ios lama yang cacat/setengah matang di server cloud
           rm -rf ios
-
-          # Paksa Capacitor membuat ulang folder ios fresh dari nol
           npx cap add ios
           npx cap sync ios
 
