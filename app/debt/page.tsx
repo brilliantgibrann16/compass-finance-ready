@@ -6,8 +6,8 @@ import { useHydrated } from "@/lib/useHydrated";
 import { getAllDebtsSummary, getDebtFreeCountdown } from "@/lib/engine/debtEngine";
 import { getMonthlyTimeline } from "@/lib/engine/debtEngine";
 
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { DebtCountdownHero } from "@/components/debt/DebtCountdownHero";
 import { DebtSourceSection } from "@/components/debt/DebtSourceSection";
 import { DebtTimeline } from "@/components/debt/DebtTimeline";
@@ -28,21 +28,13 @@ export default function DebtPage() {
     wasAllPaidOff.current = summary.isAllPaidOff;
   }, [summary.isAllPaidOff]);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   const countdown = getDebtFreeCountdown(debts);
   const months = getMonthlyTimeline(debts);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Debt-Free Mode" subtitle="Track every installment to zero" />
-
+    <PageLayout title="Debt-Free Mode" subtitle="Track every installment to zero">
       <DebtCountdownHero summary={summary} countdown={countdown} />
 
       <div className="mt-6 space-y-4">
@@ -56,7 +48,6 @@ export default function DebtPage() {
       </div>
 
       <DebtFreeCelebration open={celebrating} onClose={() => setCelebrating(false)} />
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

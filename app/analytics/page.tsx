@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { formatRupiah, formatRupiahCompact } from "@/lib/utils/currency";
 import {
@@ -44,13 +44,7 @@ export default function AnalyticsPage() {
   const categories = useMemo(() => getCategoryBreakdown(transactions, "expense"), [transactions]);
   const summary = useMemo(() => getIncomeExpenseSummary(transactions), [transactions]);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   const spendingCards = [
     { label: "7 days", value: spend7d, icon: Activity, accent: "text-sky-400" },
@@ -59,8 +53,7 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Analytics" subtitle="Track your spending patterns" />
+    <PageLayout title="Analytics" subtitle="Track your spending patterns">
 
       {/* Spending Summary Cards */}
       <div className="grid grid-cols-3 gap-2 mb-5">
@@ -199,7 +192,6 @@ export default function AnalyticsPage() {
         </motion.div>
       </Link>
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

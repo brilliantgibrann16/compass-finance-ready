@@ -3,8 +3,8 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { formatRupiah, formatRupiahCompact } from "@/lib/utils/currency";
 import {
@@ -64,30 +64,21 @@ export default function ReportsPage() {
     }
   }, [report]);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   if (availableMonths.length === 0 || !report) {
     return (
-      <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-        <PageHeader title="Reports" subtitle="Monthly financial summaries" />
+      <PageLayout title="Reports" subtitle="Monthly financial summaries">
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <FileText size={48} className="text-ink-faint" />
           <p className="text-ink-muted">No transaction data yet</p>
         </div>
-        <BottomNav />
-      </main>
+      </PageLayout>
     );
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Reports" subtitle="Monthly financial summaries" />
+    <PageLayout title="Reports" subtitle="Monthly financial summaries">
 
       {/* Month Picker */}
       <div className="relative mb-5">
@@ -227,7 +218,6 @@ export default function ReportsPage() {
         )}
       </motion.button>
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

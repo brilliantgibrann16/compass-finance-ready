@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
@@ -331,8 +331,7 @@ export default function MorePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="More" subtitle="All features & tools" />
+    <PageLayout title="More" subtitle="All features & tools">
 
       {/* ── Navigation Grid ───────────────────────────────────────────── */}
       <div className="space-y-2">
@@ -492,7 +491,6 @@ export default function MorePage() {
         )}
       </AnimatePresence>
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

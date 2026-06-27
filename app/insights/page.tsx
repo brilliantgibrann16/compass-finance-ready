@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
@@ -66,13 +66,7 @@ export default function InsightsPage() {
   const wishlist = useAppStore((s) => s.wishlist);
   const transferSettings = useAppStore((s) => s.transferSettings);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   const categories = getCategoryBreakdown(transactions, PERIOD_DAYS[period]);
   const dailyData = getDailySpending(transactions, period === "7d" ? 7 : period === "30d" ? 30 : 90);
@@ -86,8 +80,7 @@ export default function InsightsPage() {
   const biggestDay = dailyData.reduce((max, d) => (d.amount > max.amount ? d : max), dailyData[0] ?? { date: "", label: "", amount: 0 });
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Smart Insights" subtitle="Understand your money" />
+    <PageLayout title="Smart Insights" subtitle="Understand your money">
 
       {/* Period Selector */}
       <div className="mb-4 flex gap-2">
@@ -226,7 +219,6 @@ export default function InsightsPage() {
         </div>
       )}
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

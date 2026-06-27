@@ -2,8 +2,8 @@
 
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { generateCoachTips, type CoachTipType } from "@/lib/engine/coachEngine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,13 +41,7 @@ export default function CoachPage() {
   const transferSettings = useAppStore((s) => s.transferSettings);
   const balance = useAppStore((s) => s.balance);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   const tips = generateCoachTips(transactions, debts, savingsGoals, wishlist, transferSettings, balance);
 
@@ -61,8 +55,7 @@ export default function CoachPage() {
   const typeOrder: CoachTipType[] = ["spending", "debt", "savings", "goal"];
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Budget Coach" subtitle="Your personal finance advisor" />
+    <PageLayout title="Budget Coach" subtitle="Your personal finance advisor">
 
       {/* Coach Avatar */}
       <motion.div
@@ -137,7 +130,6 @@ export default function CoachPage() {
         </div>
       )}
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

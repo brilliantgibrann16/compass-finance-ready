@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { generateNotifications } from "@/lib/engine/notificationEngine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -67,20 +67,13 @@ export default function NotificationsPage() {
     }
   }, [hydrated, addNotification]);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   const unread = notifications.filter((n) => !n.isRead);
   const read = notifications.filter((n) => n.isRead);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Notifications" subtitle={`${unread.length} unread`} />
+    <PageLayout title="Notifications" subtitle={`${unread.length} unread`}>
 
       {notifications.length > 0 && (
         <button
@@ -186,7 +179,6 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

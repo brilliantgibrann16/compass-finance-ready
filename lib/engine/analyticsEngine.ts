@@ -5,9 +5,10 @@
  * summaries from the transaction list.
  */
 
-import { parseISO, subDays, startOfMonth, endOfMonth, format, isWithinInterval } from "date-fns";
+import { subDays, startOfMonth, endOfMonth, format } from "date-fns";
 import type { Transaction, CategoryId } from "@/lib/types";
 import { CATEGORIES } from "@/lib/engine/categoryDetector";
+import { filterByDateRange, sumByKind } from "@/lib/engine/transactionUtils";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -48,18 +49,7 @@ export interface MonthlyReport {
   transactionCount: number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────
 
-function filterByDateRange(txs: Transaction[], start: Date, end: Date): Transaction[] {
-  return txs.filter((t) => {
-    const d = parseISO(t.date);
-    return isWithinInterval(d, { start, end });
-  });
-}
-
-function sumByKind(txs: Transaction[], kind: "expense" | "income"): number {
-  return txs.filter((t) => t.kind === kind).reduce((s, t) => s + t.amount, 0);
-}
 
 // ─── Spending Trends ─────────────────────────────────────────────
 

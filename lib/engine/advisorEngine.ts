@@ -13,12 +13,15 @@
 
 import {
   parseISO, subMonths, startOfMonth, endOfMonth, differenceInMonths,
-  differenceInDays, addMonths, format, isWithinInterval,
+  differenceInDays, addMonths, format,
 } from "date-fns";
 import type {
   Transaction, CategoryId, SavingsGoal, Debt,
 } from "@/lib/types";
 import { CATEGORIES } from "@/lib/engine/categoryDetector";
+import {
+  filterByDateRange, sumByKind, getDirection, pctChange,
+} from "@/lib/engine/transactionUtils";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -114,29 +117,15 @@ export interface MerchantAnalysis {
 function filterByMonth(txs: Transaction[], year: number, month: number): Transaction[] {
   const start = startOfMonth(new Date(year, month - 1, 1));
   const end = endOfMonth(new Date(year, month - 1, 1));
-  return txs.filter((t) => {
-    const d = parseISO(t.date);
-    return isWithinInterval(d, { start, end });
-  });
+  return filterByDateRange(txs, start, end);
 }
 
 function sumExpenses(txs: Transaction[]): number {
-  return txs.filter((t) => t.kind === "expense").reduce((s, t) => s + t.amount, 0);
+  return sumByKind(txs, "expense");
 }
 
 function sumIncome(txs: Transaction[]): number {
-  return txs.filter((t) => t.kind === "income").reduce((s, t) => s + t.amount, 0);
-}
-
-function getDirection(change: number): "up" | "down" | "same" {
-  if (change > 0) return "up";
-  if (change < 0) return "down";
-  return "same";
-}
-
-function pctChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return Math.round(((current - previous) / previous) * 100);
+  return sumByKind(txs, "income");
 }
 
 // ─── 1. Spending Change Analysis ─────────────────────────────────

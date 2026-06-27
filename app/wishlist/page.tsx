@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { WishlistItemCard } from "@/components/wishlist/WishlistItemCard";
 import { WishlistFormSheet } from "@/components/wishlist/WishlistFormSheet";
 import type { WishlistItem } from "@/lib/types";
@@ -16,13 +16,7 @@ export default function WishlistPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   function openAddForm() {
     setEditingItem(null);
@@ -35,8 +29,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Wishlist" subtitle="Things you're saving up for" />
+    <PageLayout title="Wishlist" subtitle="Things you're saving up for">
 
       {wishlist.length === 0 ? (
         <div className="flex flex-col items-center rounded-xl2 border border-dashed border-border-soft py-12 text-center">
@@ -60,7 +53,6 @@ export default function WishlistPage() {
       </button>
 
       <WishlistFormSheet open={formOpen} onClose={() => setFormOpen(false)} editingItem={editingItem} />
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

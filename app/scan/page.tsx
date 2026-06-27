@@ -4,8 +4,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
 import { scanReceipt } from "@/lib/engine/ocrEngine";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { CATEGORY_LIST } from "@/lib/engine/categoryDetector";
 import { formatNumberID } from "@/lib/utils/currency";
@@ -136,21 +136,10 @@ export default function ScanPage() {
     };
   }, []);
 
-  // ── Pre-mount fallback (Capacitor / SSR) ─────────────────────────────
-  if (!isClient || !hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-          <p className="p-4 text-sm text-white/60">Loading scanner…</p>
-        </div>
-      </div>
-    );
-  }
+  if (!isClient || !hydrated) return <LoadingScreen />;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Receipt Scanner" subtitle="Snap, scan, and log expenses" />
+    <PageLayout title="Receipt Scanner" subtitle="Snap, scan, and log expenses">
 
       <AnimatePresence mode="wait">
         {scanState === "idle" && (
@@ -394,7 +383,6 @@ export default function ScanPage() {
         )}
       </AnimatePresence>
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }

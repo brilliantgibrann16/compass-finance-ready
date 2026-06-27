@@ -3,6 +3,7 @@ import type { Transaction, TransferSettings, Debt, SavingsGoal, WishlistItem, Ca
 import { CATEGORIES } from "@/lib/engine/categoryDetector";
 import { getAllDebtsSummary } from "@/lib/engine/debtEngine";
 import { formatRupiah, formatRupiahCompact } from "@/lib/utils/currency";
+import { filterByDateRange, filterByKind, sumAmount } from "@/lib/engine/transactionUtils";
 
 export interface Insight {
   id: string;
@@ -35,11 +36,7 @@ export interface WeeklySpend {
 export type ChartPeriod = "7d" | "30d" | "90d";
 
 function getExpenses(transactions: Transaction[], startDate: Date, endDate: Date): Transaction[] {
-  return transactions.filter((t) => {
-    if (t.kind !== "expense") return false;
-    const d = parseISO(t.date);
-    return d >= startDate && d <= endDate;
-  });
+  return filterByKind(filterByDateRange(transactions, startDate, endDate), "expense");
 }
 
 export function getCategoryBreakdown(
@@ -49,7 +46,7 @@ export function getCategoryBreakdown(
 ): CategorySpend[] {
   const startDate = subDays(today, days);
   const expenses = getExpenses(transactions, startDate, today);
-  const totalSpent = expenses.reduce((sum, t) => sum + t.amount, 0);
+  const totalSpent = sumAmount(expenses);
 
   const byCategory = new Map<CategoryId, number>();
   for (const tx of expenses) {

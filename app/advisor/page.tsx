@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { PageLayout } from "@/components/ui/PageLayout";
 import { Card } from "@/components/ui/Card";
 import { formatRupiahCompact } from "@/lib/utils/currency";
 import {
@@ -65,17 +65,10 @@ export default function AdvisorPage() {
   const alerts = useMemo(() => getOverspendingAlerts(transactions, today), [transactions, today]);
   const merchants = useMemo(() => getMerchantAnalysis(transactions), [transactions]);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
-      </div>
-    );
-  }
+  if (!hydrated) return <LoadingScreen />;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="AI Advisor" subtitle="Personalized financial insights" />
+    <PageLayout title="AI Advisor" subtitle="Personalized financial insights">
 
       {/* ── Recommendations ── */}
       <section className="mb-6">
@@ -310,8 +303,7 @@ export default function AdvisorPage() {
         </section>
       )}
 
-      <BottomNav />
-    </main>
+    </PageLayout>
   );
 }
 
