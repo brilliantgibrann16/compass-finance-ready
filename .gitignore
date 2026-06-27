@@ -4,5 +4,6 @@ out
 coverage
 *.log
 .DS_Store
-.env*.local
+.env
+.env.*
 *.tsbuildinfo

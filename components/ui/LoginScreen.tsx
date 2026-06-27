@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { sanitizeEmail, sanitizeTextInput } from "@/lib/utils/sanitize";
 
 /**
  * LoginScreen — Premium multi-user authentication gateway.
@@ -25,13 +26,35 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Rate-limiting: max 5 attempts per 60 seconds
+  const attemptsRef = useRef<number[]>([]);
+  const MAX_ATTEMPTS = 5;
+  const WINDOW_MS = 60_000;
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       setError("");
 
-      if (!email.trim() || !password.trim()) {
-        setError("Please enter your email and password.");
+      // Rate limiting
+      const now = Date.now();
+      attemptsRef.current = attemptsRef.current.filter((t) => now - t < WINDOW_MS);
+      if (attemptsRef.current.length >= MAX_ATTEMPTS) {
+        setError("Too many attempts. Please wait a moment.");
+        return;
+      }
+      attemptsRef.current.push(now);
+
+      // Input validation
+      const sanitizedEmail = sanitizeEmail(email);
+      const sanitizedPassword = sanitizeTextInput(password, 128);
+
+      if (!sanitizedEmail) {
+        setError("Please enter a valid email address.");
+        return;
+      }
+      if (!sanitizedPassword || sanitizedPassword.length < 1) {
+        setError("Please enter your password.");
         return;
       }
 
@@ -40,8 +63,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       // Simulate network delay for premium feel
       setTimeout(() => {
         const session = {
-          email: email.trim(),
-          displayName: email.split("@")[0] || "User",
+          email: sanitizedEmail,
+          displayName: sanitizedEmail.split("@")[0] || "User",
           loginAt: new Date().toISOString(),
           rememberMe,
         };

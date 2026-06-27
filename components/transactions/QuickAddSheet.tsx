@@ -7,6 +7,7 @@ import { parseQuickAdd } from "@/lib/engine/quickAddParser";
 import { useAppStore } from "@/lib/store";
 import { CATEGORY_LIST } from "@/lib/engine/categoryDetector";
 import { formatNumberID } from "@/lib/utils/currency";
+import { sanitizeTextInput } from "@/lib/utils/sanitize";
 import { motion } from "framer-motion";
 import { ArrowDownCircle, ArrowUpCircle, Check } from "lucide-react";
 import { clsx } from "clsx";
@@ -37,7 +38,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
       amount: parsed.amount,
       kind: parsed.kind,
       category: effectiveCategory,
-      merchant: parsed.description || undefined,
+      merchant: parsed.description ? sanitizeTextInput(parsed.description, 100) : undefined,
       source: "quick-add",
     });
     handleClose();
@@ -49,6 +50,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
         autoFocus
         type="text"
         inputMode="numeric"
+        maxLength={200}
         value={text}
         onChange={(e) => {
           setText(e.target.value);

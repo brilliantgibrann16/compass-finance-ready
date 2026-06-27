@@ -6,10 +6,29 @@ import { SyncCoordinator, type EnqueueInput } from "@/lib/syncCoordinator";
 // Every persisted-slice mutation is mirrored into the coordinator's durable
 // (localStorage-backed) queue and opportunistically flushed to the sync API.
 
-const SYNC_ENDPOINT =
+const RAW_SYNC_ENDPOINT =
   (process.env.NEXT_PUBLIC_SYNC_ENDPOINT ?? "").trim() || "/api/sync";
 const QUEUE_STORAGE_KEY = "compass-sync-queue";
 const SYNC_ENABLED = (process.env.NEXT_PUBLIC_SYNC_ENABLED ?? "").toLowerCase() === "true";
+
+/** Validate that the sync endpoint is a safe relative path or same-origin URL. */
+function validateSyncEndpoint(endpoint: string): string {
+  // Relative paths are always safe (same-origin)
+  if (endpoint.startsWith("/")) return endpoint;
+  try {
+    const url = new URL(endpoint);
+    // Only allow HTTPS endpoints to prevent data exfiltration over HTTP
+    if (url.protocol !== "https:") {
+      console.warn("[Compass Sync] Blocked insecure sync endpoint:", endpoint);
+      return "/api/sync";
+    }
+    return endpoint;
+  } catch {
+    return "/api/sync";
+  }
+}
+
+const SYNC_ENDPOINT = validateSyncEndpoint(RAW_SYNC_ENDPOINT);
 
 let coordinator: SyncCoordinator | null = null;
 
