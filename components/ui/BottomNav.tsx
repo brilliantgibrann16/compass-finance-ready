@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, ScanLine, BarChart3, Brain, MoreHorizontal } from "lucide-react";
@@ -28,11 +27,15 @@ export function BottomNav() {
           const Icon = item.icon;
 
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = item.href;
+              }}
               className={clsx(
-                "relative flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition",
+                "relative flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition cursor-pointer",
                 isActive ? "text-gold" : "text-ink-faint hover:text-ink-muted"
               )}
             >
@@ -47,7 +50,7 @@ export function BottomNav() {
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
-            </Link>
+            </a>
           );
         })}
       </div>

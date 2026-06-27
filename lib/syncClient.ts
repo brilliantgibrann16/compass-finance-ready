@@ -19,7 +19,7 @@ import {
 
 const SYNC_FUNCTION_NAME = "sync-state";
 const QUEUE_STORAGE_KEY = "compass-sync-queue";
-const SYNC_ENABLED = (process.env.NEXT_PUBLIC_SYNC_ENABLED ?? "").toLowerCase() === "true";
+const SYNC_ENABLED = (process.env.NEXT_PUBLIC_SYNC_ENABLED ?? "").toLowerCase() !== "false"; 
 
 /** Resolve the remote sync endpoint: explicit override → Supabase function → none. */
 function resolveSyncEndpoint(): string {
@@ -60,7 +60,16 @@ export function getSyncCoordinator(): SyncCoordinator | null {
 
 /** Enqueue a mutation durably, then opportunistically flush to the server. */
 export function enqueueSync(input: EnqueueInput): void {
-  if (!shouldStartSync()) return;
+  if (!shouldStartSync()) {
+    // Local-First Mock Resolution
+    // If the cloud is unprovisioned, act as if the sync succeeded instantly.
+    // This ensures no unhandled promises, reference errors, or queue piling.
+    if (typeof window !== "undefined") {
+        console.debug(`[Sync] Local-First Mode active. Cloud unprovisioned. Mutation saved locally: ${input.kind}`);
+    }
+    return;
+  }
+  
   const c = getSyncCoordinator();
   if (!c) return;
   void c
@@ -95,10 +104,18 @@ let started = false;
  * session, then mirror each persisted-slice change into the durable queue.
  */
 export function startSync(store: SubscribableStore): void {
-  if (!shouldStartSync() || started) return;
+  if (started) return;
+  started = true;
+  
+  if (!shouldStartSync()) {
+    if (typeof window !== "undefined") {
+      console.log("[Sync] Supabase not configured. Operating in robust Local-First fallback mode.");
+    }
+    return;
+  }
+  
   const c = getSyncCoordinator();
   if (!c) return;
-  started = true;
 
   void c.syncNow().catch(() => {});
 

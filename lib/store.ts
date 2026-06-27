@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import type {
   AppData,
   AppNotification,
@@ -13,6 +13,7 @@ import type {
 } from "@/lib/types";
 import { SEED_DATA } from "@/lib/seedData";
 import { startSync } from "@/lib/syncClient";
+import { isSupabaseConfigured } from "@/lib/auth/supabaseClient";
 
 interface AppActions {
   addTransaction: (input: {
@@ -54,6 +55,44 @@ function generateId(): string {
 }
 
 const STORE_VERSION = 5;
+
+// Robust Local-First Fallback Engine for Zustand
+// Guarantees no unhandled errors if unprovisioned or running in an SSR/iOS context.
+const safeFallbackStorage: StateStorage = {
+  getItem: (name: string) => {
+    try {
+      if (typeof window === "undefined") return null;
+      return window.localStorage.getItem(name) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name: string, value: string) => {
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(name, value);
+      }
+    } catch {
+      // Silently fail if storage is full or disabled
+    }
+  },
+  removeItem: (name: string) => {
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(name);
+      }
+    } catch {
+      // Silently fail
+    }
+  },
+};
+
+const cloudAwareStorage = createJSONStorage(() => {
+  // If Supabase is configured, this could return a custom Supabase StateStorage.
+  // For offline-first architecture, we always use the safe local storage wrapper 
+  // as the source of truth, and let syncClient replicate it in the background.
+  return safeFallbackStorage;
+});
 
 export const useAppStore = create<AppStore>()(
   persist(
@@ -179,10 +218,7 @@ export const useAppStore = create<AppStore>()(
     }),
     {
       name: "compass-finance-data",
-      storage: createJSONStorage(() => localStorage),
-      // Swap `storage` for a Supabase-backed implementation of
-      // { getItem, setItem, removeItem } when V2 lands — nothing
-      // else in the app touches localStorage directly.
+      storage: cloudAwareStorage,
       version: STORE_VERSION,
       migrate: (persistedState, persistedVersion) => {
         const state = persistedState as AppData;
