@@ -18,6 +18,7 @@ export const SEED_DATA: AppData = {
     dayOne: 1,
     dayTwo: 15,
     amountPerTransfer: 1_250_000,
+    frequency: "monthly",
   },
   debts: [],
   savingsGoals: [],

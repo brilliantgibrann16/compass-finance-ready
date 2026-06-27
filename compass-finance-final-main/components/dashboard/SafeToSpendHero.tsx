@@ -3,24 +3,27 @@
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { formatNumberID } from "@/lib/utils/currency";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { SpendingSnapshot } from "@/lib/engine/spendingEngine";
 import { clsx } from "clsx";
 
-const PACE_COPY: Record<SpendingSnapshot["pace"], { label: string; color: string }> = {
-  ahead: { label: "Ahead of pace", color: "text-emerald" },
-  "on-track": { label: "On track", color: "text-gold" },
-  behind: { label: "Over pace — ease up", color: "text-coral" },
-};
-
 export function SafeToSpendHero({ snapshot }: { snapshot: SpendingSnapshot }) {
+  const { t } = useTranslation();
   const ratio = snapshot.safeToSpendToday > 0 ? snapshot.todaySpent / snapshot.safeToSpendToday : 0;
-  const pace = PACE_COPY[snapshot.pace];
+
+  const paceConfig: Record<SpendingSnapshot["pace"], { label: string; color: string }> = {
+    ahead: { label: t("paceUnder"), color: "text-emerald" },
+    "on-track": { label: t("paceOnTrack"), color: "text-gold" },
+    behind: { label: t("paceOver"), color: "text-coral" },
+  };
+
+  const pace = paceConfig[snapshot.pace];
   const ringColor = ratio > 1 ? "#F87171" : ratio > 0.85 ? "#F0B429" : "#34D399";
 
   return (
     <div className="flex flex-col items-center aero-glass-glow p-6 text-center">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
-        Safe to spend today
+        {t("safeToSpend")}
       </p>
 
       <div className="my-4">

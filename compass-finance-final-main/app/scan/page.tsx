@@ -13,12 +13,26 @@ import type { CategoryId, ReceiptScanResult } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Upload, Check, RotateCcw, ScanLine, AlertCircle } from "lucide-react";
 import { clsx } from "clsx";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 type ScanState = "idle" | "scanning" | "result" | "error";
 
 export default function ScanPage() {
   const hydrated = useHydrated();
   const addTransaction = useAppStore((s) => s.addTransaction);
+  const { t } = useTranslation();
+
+  // ── Capacitor safe-mount guard ───────────────────────────────────────
+  // On iOS/Capacitor (capacitor://localhost), top-level component rendering
+  // can attempt to resolve relative asset paths (tessdata/, worker scripts)
+  // before the client JS runtime is fully bootstrapped, causing a blank
+  // black screen. We gate ALL scanner UI behind this flag so nothing
+  // browser-specific executes until useEffect confirms we're on the client.
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -124,17 +138,21 @@ export default function ScanPage() {
     };
   }, []);
 
-  if (!hydrated) {
+  // ── Pre-mount fallback (Capacitor / SSR) ─────────────────────────────
+  if (!isClient || !hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-gold" />
+          <p className="p-4 text-sm text-white/60">{t("loadingScanner")}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Receipt Scanner" subtitle="Snap, scan, and log expenses" />
+      <PageHeader title={t("receiptScanner")} subtitle={t("receiptScannerSubtitle")} />
 
       <AnimatePresence mode="wait">
         {scanState === "idle" && (

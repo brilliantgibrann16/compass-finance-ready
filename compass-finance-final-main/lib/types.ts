@@ -43,12 +43,27 @@ export interface Transaction {
   createdAt: string;
 }
 
+export type IncomeFrequency = "weekly" | "biweekly" | "monthly" | "custom";
+
 export interface TransferSettings {
   /** Day-of-month for the first transfer in a cycle, e.g. 1 */
   dayOne: number;
   /** Day-of-month for the second transfer in a cycle, e.g. 15 */
   dayTwo: number;
   amountPerTransfer: number;
+  /** Income frequency — defaults to "monthly" */
+  frequency?: IncomeFrequency;
+  /** For custom frequency: interval in days */
+  customIntervalDays?: number;
+}
+
+export interface FixedExpense {
+  id: string;
+  name: string;
+  amount: number;
+  /** ISO date string for next due date */
+  dueDate?: string;
+  isActive: boolean;
 }
 
 export interface DebtInstallment {

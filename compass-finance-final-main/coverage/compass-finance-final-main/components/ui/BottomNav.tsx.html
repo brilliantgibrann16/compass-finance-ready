@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/40</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/40</span>
             </div>
         
             
@@ -119,15 +119,8 @@
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,11 +132,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -166,15 +159,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -196,21 +180,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, ScanLine, BarChart3, Brain, Bell } from "lucide-react";
-import { useAppStore } from "@/lib/store";
-import { clsx } from "clsx";
+import { Home, ScanLine, BarChart3, Brain, MoreHorizontal } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const NAV_ITEMS = [</span>
-<span class="cstat-no" title="statement not covered" >  { href: "/", label: "Home", icon: Home },</span>
-<span class="cstat-no" title="statement not covered" >  { href: "/scan", label: "Scan", icon: ScanLine },</span>
-<span class="cstat-no" title="statement not covered" >  { href: "/insights", label: "Insights", icon: BarChart3 },</span>
-<span class="cstat-no" title="statement not covered" >  { href: "/coach", label: "Coach", icon: Brain },</span>
-<span class="cstat-no" title="statement not covered" >  { href: "/notifications", label: "Alerts", icon: Bell },</span>
-<span class="cstat-no" title="statement not covered" >] as const;</span>
+import { clsx } from "clsx";
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export function BottomNav() {</span>
 <span class="cstat-no" title="statement not covered" >  const pathname = usePathname();</span>
-<span class="cstat-no" title="statement not covered" >  const unreadCount = useAppStore((s) =&gt; s.notifications.filter((n) =&gt; !n.isRead).length);</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const NAV_ITEMS = [</span>
+<span class="cstat-no" title="statement not covered" >    { href: "/", label: t("navHome"), icon: Home },</span>
+<span class="cstat-no" title="statement not covered" >    { href: "/scan", label: t("navScan"), icon: ScanLine },</span>
+<span class="cstat-no" title="statement not covered" >    { href: "/insights", label: t("navInsights"), icon: BarChart3 },</span>
+<span class="cstat-no" title="statement not covered" >    { href: "/coach", label: t("navCoach"), icon: Brain },</span>
+<span class="cstat-no" title="statement not covered" >    { href: "/more", label: t("navMore"), icon: MoreHorizontal },</span>
+<span class="cstat-no" title="statement not covered" >  ] as const;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md aero-nav pb-[max(0.25rem,env(safe-area-inset-bottom))]"&gt;</span>
@@ -230,15 +215,6 @@ import { clsx } from "clsx";
             &gt;
 <span class="cstat-no" title="statement not covered" >              &lt;span className="relative"&gt;</span>
 <span class="cstat-no" title="statement not covered" >                &lt;Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >                {item.href === "/notifications" &amp;&amp; unreadCount &gt; 0 &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >                  &lt;motion.span</span>
-<span class="cstat-no" title="statement not covered" >                    initial={{ scale: 0 }}</span>
-<span class="cstat-no" title="statement not covered" >                    animate={{ scale: 1 }}</span>
-<span class="cstat-no" title="statement not covered" >                    className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-coral text-[9px] font-bold text-white"</span>
-                  &gt;
-<span class="cstat-no" title="statement not covered" >                    {unreadCount &gt; 9 ? "9+" : unreadCount}</span>
-<span class="cstat-no" title="statement not covered" >                  &lt;/motion.span&gt;</span>
-                )}
 <span class="cstat-no" title="statement not covered" >              &lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;span&gt;{item.label}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >              {isActive &amp;&amp; (</span>
@@ -262,7 +238,7 @@ import { clsx } from "clsx";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatRupiahCompact } from "@/lib/utils/currency";
 import { getGoalProjection } from "@/lib/engine/goalProjection";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { SavingsGoal } from "@/lib/types";
 import { GraduationCap, ShieldCheck } from "lucide-react";
 
@@ -16,6 +17,7 @@ const ROUTE_BY_TYPE = {
 } as const;
 
 export function GoalTeaser({ goal }: { goal: SavingsGoal }) {
+  const { t } = useTranslation();
   const projection = getGoalProjection(goal);
   const Icon = ICONS[goal.type];
 
@@ -34,7 +36,7 @@ export function GoalTeaser({ goal }: { goal: SavingsGoal }) {
           <span className="text-ink-muted">
             {formatRupiahCompact(goal.currentAmount)} / {formatRupiahCompact(goal.targetAmount)}
           </span>
-          <span className="text-ink-faint">Proj. {projection.projectedCompletionLabel}</span>
+          <span className="text-ink-faint">{t("savingsForecast")}: {projection.projectedCompletionLabel}</span>
         </div>
       </Card>
     </Link>

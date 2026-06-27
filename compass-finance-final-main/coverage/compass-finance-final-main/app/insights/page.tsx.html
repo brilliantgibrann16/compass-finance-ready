@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/172</span>
+                <span class='fraction'>0/173</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/172</span>
+                <span class='fraction'>0/173</span>
             </div>
         
             
@@ -295,7 +295,9 @@
 <a name='L230'></a><a href='#L230'>230</a>
 <a name='L231'></a><a href='#L231'>231</a>
 <a name='L232'></a><a href='#L232'>232</a>
-<a name='L233'></a><a href='#L233'>233</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -323,21 +325,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -348,11 +336,27 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -554,6 +558,7 @@ import {
   CheckCircle, Star, Award, PiggyBank, BarChart3,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 &nbsp;
 <span class="cstat-no" title="statement not covered" >const ICON_MAP: Record&lt;string, React.ElementType&gt; = {</span>
 <span class="cstat-no" title="statement not covered" >  PieChart: PieChartIcon, TrendingUp, Zap, AlertTriangle,</span>
@@ -588,6 +593,7 @@ import { clsx } from "clsx";
 <span class="cstat-no" title="statement not covered" >export default function InsightsPage() {</span>
 <span class="cstat-no" title="statement not covered" >  const hydrated = useHydrated();</span>
 <span class="cstat-no" title="statement not covered" >  const [period, setPeriod] = useState&lt;ChartPeriod&gt;("30d");</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const transactions = useAppStore((s) =&gt; s.transactions);</span>
 <span class="cstat-no" title="statement not covered" >  const debts = useAppStore((s) =&gt; s.debts);</span>
@@ -616,7 +622,7 @@ import { clsx } from "clsx";
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8"&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;PageHeader title="Smart Insights" subtitle="Understand your money" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;PageHeader title={t("smartInsights")} subtitle={t("smartInsightsSubtitle")} /&gt;</span>
 &nbsp;
       {/* Period Selector */}
 <span class="cstat-no" title="statement not covered" >      &lt;div className="mb-4 flex gap-2"&gt;</span>
@@ -766,7 +772,7 @@ import { clsx } from "clsx";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

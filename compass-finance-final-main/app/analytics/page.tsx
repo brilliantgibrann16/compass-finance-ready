@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   Cell, PieChart as RePieChart, Pie,
@@ -33,6 +34,7 @@ export default function AnalyticsPage() {
   const hydrated = useHydrated();
   const transactions = useAppStore((s) => s.transactions);
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const { t } = useTranslation();
 
   const today = useMemo(() => new Date(), []);
   const spend7d = useMemo(() => get7DaySpending(transactions, today), [transactions, today]);
@@ -60,7 +62,7 @@ export default function AnalyticsPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Analytics" subtitle="Track your spending patterns" />
+      <PageHeader title={t("analytics")} subtitle={t("analyticsDesc")} />
 
       {/* Spending Summary Cards */}
       <div className="grid grid-cols-3 gap-2 mb-5">

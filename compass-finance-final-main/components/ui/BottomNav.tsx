@@ -4,20 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, ScanLine, BarChart3, Brain, MoreHorizontal } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 import { clsx } from "clsx";
 
-const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/scan", label: "Scan", icon: ScanLine },
-  { href: "/insights", label: "Insights", icon: BarChart3 },
-  { href: "/coach", label: "Coach", icon: Brain },
-  { href: "/more", label: "More", icon: MoreHorizontal },
-] as const;
-
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
+  const NAV_ITEMS = [
+    { href: "/", label: t("navHome"), icon: Home },
+    { href: "/scan", label: t("navScan"), icon: ScanLine },
+    { href: "/insights", label: t("navInsights"), icon: BarChart3 },
+    { href: "/coach", label: t("navCoach"), icon: Brain },
+    { href: "/more", label: t("navMore"), icon: MoreHorizontal },
+  ] as const;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md aero-nav pb-[max(0.25rem,env(safe-area-inset-bottom))]">

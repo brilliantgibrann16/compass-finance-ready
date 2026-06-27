@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/38</span>
+                <span class='fraction'>0/39</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/38</span>
+                <span class='fraction'>0/39</span>
             </div>
         
             
@@ -118,9 +118,7 @@
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -132,9 +130,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -183,16 +179,14 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatRupiahCompact } from "@/lib/utils/currency";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { Debt } from "@/lib/types";
 import { getAllDebtsSummary, getDebtFreeCountdown } from "@/lib/engine/debtEngine";
 import { format, parseISO } from "date-fns";
 import { Landmark, PartyPopper } from "lucide-react";
 &nbsp;
-/**
- * Aggregate dashboard card across all debt sources (SPayLater, GoPay
- * Pinjam, ...). Per-debt breakdown lives on the dedicated /debt screen.
- */
 <span class="cstat-no" title="statement not covered" >export function DebtTeaser({ debts }: { debts: Debt[] }) {</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
 <span class="cstat-no" title="statement not covered" >  const summary = getAllDebtsSummary(debts);</span>
 <span class="cstat-no" title="statement not covered" >  const countdown = getDebtFreeCountdown(debts);</span>
 &nbsp;
@@ -202,7 +196,7 @@ import { Landmark, PartyPopper } from "lucide-react";
 <span class="cstat-no" title="statement not covered" >        &lt;Card variant="glow" className="cursor-pointer"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;div className="flex items-center gap-2 text-emerald"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;PartyPopper size={18} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;span className="font-medium"&gt;All debts paid off!&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;span className="font-medium"&gt;{t("paidOff")}! 🎉&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/Card&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/Link&gt;</span>
@@ -215,18 +209,18 @@ import { Landmark, PartyPopper } from "lucide-react";
 <span class="cstat-no" title="statement not covered" >        &lt;div className="mb-3 flex items-center justify-between"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;div className="flex items-center gap-2"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;Landmark size={18} className="text-coral" /&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;span className="font-medium text-ink"&gt;Debt-Free Progress&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;span className="font-medium text-ink"&gt;{t("debtOverview")}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;span className="font-mono text-sm text-ink-muted"&gt;{summary.progressPct}% paid&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;span className="font-mono text-sm text-ink-muted"&gt;{summary.progressPct}% {t("paidAmount")}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;ProgressBar progress={summary.progressPct} color="#34D399" /&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="mt-3 flex items-center justify-between text-sm"&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;span className="text-ink-muted"&gt;{formatRupiahCompact(summary.remainingAmount)} left&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;span className="text-ink-muted"&gt;{formatRupiahCompact(summary.remainingAmount)} {t("remaining")}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;span className="text-ink-faint"&gt;Target {countdown.targetLabel}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        {summary.nextDueDate &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >          &lt;p className="mt-2 text-xs text-ink-faint"&gt;</span>
-<span class="cstat-no" title="statement not covered" >            Next due {format(parseISO(summary.nextDueDate), "d MMM")} ·{" "}</span>
+<span class="cstat-no" title="statement not covered" >            {t("nextPayment")} {format(parseISO(summary.nextDueDate), "d MMM")} ·{" "}</span>
 <span class="cstat-no" title="statement not covered" >            {formatRupiahCompact(summary.nextDueAmount)}</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/p&gt;</span>
         )}
@@ -241,7 +235,7 @@ import { Landmark, PartyPopper } from "lucide-react";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

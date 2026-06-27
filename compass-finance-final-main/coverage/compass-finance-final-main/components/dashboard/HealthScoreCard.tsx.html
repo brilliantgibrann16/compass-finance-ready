@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/49</span>
+                <span class='fraction'>0/50</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/49</span>
+                <span class='fraction'>0/50</span>
             </div>
         
             
@@ -129,7 +129,9 @@
 <a name='L64'></a><a href='#L64'>64</a>
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,11 +141,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -151,6 +148,13 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,6 +204,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { HealthScoreResult } from "@/lib/engine/healthScore";
 import { ChevronDown, HeartPulse } from "lucide-react";
 import { motion } from "framer-motion";
@@ -211,14 +216,15 @@ import { clsx } from "clsx";
 <span class="cstat-no" title="statement not covered" >  red: "text-coral",</span>
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const BAND_COPY: Record&lt;HealthScoreResult["band"], string&gt; = {</span>
-<span class="cstat-no" title="statement not covered" >  green: "Healthy",</span>
-<span class="cstat-no" title="statement not covered" >  yellow: "Stay alert",</span>
-<span class="cstat-no" title="statement not covered" >  red: "Needs attention",</span>
-<span class="cstat-no" title="statement not covered" >};</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >export function HealthScoreCard({ result }: { result: HealthScoreResult }) {</span>
 <span class="cstat-no" title="statement not covered" >  const [expanded, setExpanded] = useState(false);</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const bandLabels: Record&lt;HealthScoreResult["band"], string&gt; = {</span>
+<span class="cstat-no" title="statement not covered" >    green: t("paceOnTrack"),</span>
+<span class="cstat-no" title="statement not covered" >    yellow: t("paceOver"),</span>
+<span class="cstat-no" title="statement not covered" >    red: t("paceOver"),</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;Card&gt;</span>
@@ -229,7 +235,7 @@ import { clsx } from "clsx";
       &gt;
 <span class="cstat-no" title="statement not covered" >        &lt;div className="flex items-center gap-2"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;HeartPulse size={18} className={BAND_CLASSES[result.band]} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;span className="font-medium text-ink"&gt;Financial Health&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;span className="font-medium text-ink"&gt;{t("healthScore")}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="flex items-center gap-2"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;span className={clsx("font-display text-xl font-semibold", BAND_CLASSES[result.band])}&gt;</span>
@@ -240,7 +246,7 @@ import { clsx } from "clsx";
 <span class="cstat-no" title="statement not covered" >          &lt;/motion.span&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/button&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;p className={clsx("mt-1 text-sm", BAND_CLASSES[result.band])}&gt;{BAND_COPY[result.band]}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;p className={clsx("mt-1 text-sm", BAND_CLASSES[result.band])}&gt;{bandLabels[result.band]}&lt;/p&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      {expanded &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;motion.div</span>
@@ -268,7 +274,7 @@ import { clsx } from "clsx";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

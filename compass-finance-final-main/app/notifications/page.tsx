@@ -15,6 +15,8 @@ import {
 import { clsx } from "clsx";
 import Link from "next/link";
 import type { NotificationType } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { scheduleDebtReminders, scheduleSavingsReminders } from "@/lib/notifications/scheduler";
 
 const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
   warning: AlertTriangle,
@@ -37,6 +39,7 @@ export default function NotificationsPage() {
   const markNotificationRead = useAppStore((s) => s.markNotificationRead);
   const dismissNotification = useAppStore((s) => s.dismissNotification);
   const clearNotifications = useAppStore((s) => s.clearNotifications);
+  const { t } = useTranslation();
 
   // Generate fresh notifications on page load
   useEffect(() => {
@@ -65,6 +68,10 @@ export default function NotificationsPage() {
         addNotification(n);
       }
     }
+
+    // Also schedule Capacitor native notifications (no-op on web)
+    scheduleDebtReminders(state.debts).catch(() => {});
+    scheduleSavingsReminders(state.savingsGoals).catch(() => {});
   }, [hydrated, addNotification]);
 
   if (!hydrated) {
@@ -80,7 +87,7 @@ export default function NotificationsPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Notifications" subtitle={`${unread.length} unread`} />
+      <PageHeader title={t("notificationsTitle")} subtitle={`${unread.length} ${t("unread")}`} />
 
       {notifications.length > 0 && (
         <button

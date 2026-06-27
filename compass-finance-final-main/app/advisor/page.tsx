@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 const SEVERITY_STYLES: Record<AdvisorSeverity, { bg: string; border: string; icon: string; badge: string }> = {
   critical: { bg: "bg-red-500/5", border: "border-red-500/20", icon: "text-red-400", badge: "bg-red-500/10 text-red-400" },
@@ -52,6 +53,7 @@ export default function AdvisorPage() {
   const debts = useAppStore((s) => s.debts);
 
   const today = useMemo(() => new Date(), []);
+  const { t } = useTranslation();
 
   const recommendations = useMemo(
     () => getRecommendations(transactions, balance, goals, debts, today),
@@ -75,7 +77,7 @@ export default function AdvisorPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="AI Advisor" subtitle="Personalized financial insights" />
+      <PageHeader title={t("aiAdvisorTitle")} subtitle={t("aiAdvisorSubtitle")} />
 
       {/* ── Recommendations ── */}
       <section className="mb-6">

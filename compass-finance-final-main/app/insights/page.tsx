@@ -25,6 +25,7 @@ import {
   CheckCircle, Star, Award, PiggyBank, BarChart3,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   PieChart: PieChartIcon, TrendingUp, Zap, AlertTriangle,
@@ -59,6 +60,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 export default function InsightsPage() {
   const hydrated = useHydrated();
   const [period, setPeriod] = useState<ChartPeriod>("30d");
+  const { t } = useTranslation();
 
   const transactions = useAppStore((s) => s.transactions);
   const debts = useAppStore((s) => s.debts);
@@ -87,7 +89,7 @@ export default function InsightsPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Smart Insights" subtitle="Understand your money" />
+      <PageHeader title={t("smartInsights")} subtitle={t("smartInsightsSubtitle")} />
 
       {/* Period Selector */}
       <div className="mb-4 flex gap-2">

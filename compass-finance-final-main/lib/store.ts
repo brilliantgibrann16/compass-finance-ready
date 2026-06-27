@@ -53,7 +53,7 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-const STORE_VERSION = 4;
+const STORE_VERSION = 5;
 
 export const useAppStore = create<AppStore>()(
   persist(
@@ -185,14 +185,21 @@ export const useAppStore = create<AppStore>()(
       // else in the app touches localStorage directly.
       version: STORE_VERSION,
       migrate: (persistedState, persistedVersion) => {
-        // v4: deep state purge. Compass now ships as a pristine,
-        // freshly-downloaded app with zero pre-existing data. Any client
-        // persisted on an older schema (v1, v2 or v3) is reset to the
-        // empty SEED_DATA baseline so every feature card starts clean.
+        const state = persistedState as AppData;
         if (persistedVersion < 4) {
           return { ...SEED_DATA };
         }
-        return persistedState as AppData;
+        if (persistedVersion < 5) {
+          // v5: Add frequency field to transferSettings
+          return {
+            ...state,
+            transferSettings: {
+              ...state.transferSettings,
+              frequency: "monthly" as const,
+            },
+          };
+        }
+        return state;
       },
     }
   )

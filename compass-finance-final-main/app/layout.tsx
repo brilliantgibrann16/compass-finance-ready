@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { AppShell } from "@/components/ui/AppShell";
+import { Providers } from "@/components/ui/Providers";
 
 export const metadata: Metadata = {
-  title: "Compass — Daily Money Command Center",
-  description: "Your personal financial operating system.",
+  title: "Compass Finance — Daily Money Command Center",
+  description: "Your personal financial operating system. Manage your budget, track debts, and build savings with AI-powered insights.",
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
@@ -21,12 +23,13 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: "#0B0E14",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         {/*
           Loaded via <link> rather than next/font/google so the build
@@ -46,7 +49,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="Compass" />
       </head>
       <body className="font-body antialiased">
-        <PageTransition>{children}</PageTransition>
+        <Providers>
+          <AppShell>
+            <PageTransition>{children}</PageTransition>
+          </AppShell>
+        </Providers>
         {/* Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{

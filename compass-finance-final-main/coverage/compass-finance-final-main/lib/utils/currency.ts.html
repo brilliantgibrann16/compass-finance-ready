@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.19% </span>
+                <span class="strong">90.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>32/42</span>
+                <span class='fraction'>38/42</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>12/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>3/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.19% </span>
+                <span class="strong">90.47% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>32/42</span>
+                <span class='fraction'>38/42</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -133,8 +133,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -143,12 +143,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -203,13 +203,13 @@ export <span class="fstat-no" title="function not covered" >function formatNumbe
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 /** Compact form for big targets, e.g. 40000000 -&gt; "Rp40jt" */
-export <span class="fstat-no" title="function not covered" >function formatRupiahCompact(amount: number): string {</span>
-<span class="cstat-no" title="statement not covered" >  if (amount &gt;= 1_000_000_000) return `Rp${(amount / 1_000_000_000).toFixed(1)}M`;</span>
-<span class="cstat-no" title="statement not covered" >  if (amount &gt;= 1_000_000) {</span>
-<span class="cstat-no" title="statement not covered" >    const millions = amount / 1_000_000;</span>
-<span class="cstat-no" title="statement not covered" >    return `Rp${millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(1)}jt`;</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  if (amount &gt;= 1_000) return `Rp${Math.round(amount / 1000)}rb`;</span>
+export function formatRupiahCompact(amount: number): string {
+  if (amount &gt;= 1_000_000_000) <span class="branch-0 cbranch-no" title="branch not covered" >return `Rp${(amount / 1_000_000_000).toFixed(1)}M`;</span>
+  if (amount &gt;= 1_000_000) {
+    const millions = amount / 1_000_000;
+    return `Rp${millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(1)}jt`;
+  }
+  if (amount &gt;= 1_000) return `Rp${Math.round(amount / 1000)<span class="branch-0 cbranch-no" title="branch not covered" >}rb`;</span>
 <span class="cstat-no" title="statement not covered" >  return formatRupiah(amount);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -253,7 +253,7 @@ export function formatRupiahWithSpace(amount: number): string {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

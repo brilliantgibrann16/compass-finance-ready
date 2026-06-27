@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/33</span>
+                <span class='fraction'>0/35</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/33</span>
+                <span class='fraction'>0/35</span>
             </div>
         
             
@@ -109,7 +109,10 @@
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -117,6 +120,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -125,13 +133,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -160,24 +166,27 @@
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { formatNumberID } from "@/lib/utils/currency";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { SpendingSnapshot } from "@/lib/engine/spendingEngine";
 import { clsx } from "clsx";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const PACE_COPY: Record&lt;SpendingSnapshot["pace"], { label: string; color: string }&gt; = {</span>
-<span class="cstat-no" title="statement not covered" >  ahead: { label: "Ahead of pace", color: "text-emerald" },</span>
-<span class="cstat-no" title="statement not covered" >  "on-track": { label: "On track", color: "text-gold" },</span>
-<span class="cstat-no" title="statement not covered" >  behind: { label: "Over pace — ease up", color: "text-coral" },</span>
-<span class="cstat-no" title="statement not covered" >};</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >export function SafeToSpendHero({ snapshot }: { snapshot: SpendingSnapshot }) {</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
 <span class="cstat-no" title="statement not covered" >  const ratio = snapshot.safeToSpendToday &gt; 0 ? snapshot.todaySpent / snapshot.safeToSpendToday : 0;</span>
-<span class="cstat-no" title="statement not covered" >  const pace = PACE_COPY[snapshot.pace];</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const paceConfig: Record&lt;SpendingSnapshot["pace"], { label: string; color: string }&gt; = {</span>
+<span class="cstat-no" title="statement not covered" >    ahead: { label: t("paceUnder"), color: "text-emerald" },</span>
+<span class="cstat-no" title="statement not covered" >    "on-track": { label: t("paceOnTrack"), color: "text-gold" },</span>
+<span class="cstat-no" title="statement not covered" >    behind: { label: t("paceOver"), color: "text-coral" },</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const pace = paceConfig[snapshot.pace];</span>
 <span class="cstat-no" title="statement not covered" >  const ringColor = ratio &gt; 1 ? "#F87171" : ratio &gt; 0.85 ? "#F0B429" : "#34D399";</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;div className="flex flex-col items-center aero-glass-glow p-6 text-center"&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;p className="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint"&gt;</span>
-        Safe to spend today
+<span class="cstat-no" title="statement not covered" >        {t("safeToSpend")}</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/p&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      &lt;div className="my-4"&gt;</span>
@@ -208,7 +217,7 @@ import { clsx } from "clsx";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

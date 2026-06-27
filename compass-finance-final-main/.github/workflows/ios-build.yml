@@ -31,10 +31,8 @@ jobs:
         run: |
           cd ios/App
           if [ -d "App.xcworkspace" ]; then
-            echo "=== BUILD WORKSPACE ==="
             xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
           else
-            echo "=== BUILD PROJECT ==="
             xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
           fi
           mkdir -p build/Payload

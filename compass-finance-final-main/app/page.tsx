@@ -6,6 +6,7 @@ import { useHydrated } from "@/lib/useHydrated";
 import { getSpendingSnapshot } from "@/lib/engine/spendingEngine";
 import { getCurrentCycle } from "@/lib/engine/transferCycle";
 import { getHealthScore } from "@/lib/engine/healthScore";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SafeToSpendHero } from "@/components/dashboard/SafeToSpendHero";
@@ -19,11 +20,13 @@ import { QuickAddButton } from "@/components/transactions/QuickAddButton";
 import { QuickAddSheet } from "@/components/transactions/QuickAddSheet";
 import { SettingsSheet } from "@/components/transactions/SettingsSheet";
 import { BottomNav } from "@/components/ui/BottomNav";
+import { BynanceMascot } from "@/components/ui/BynanceMascot";
 import { SkeletonHero, SkeletonCard } from "@/components/ui/Skeleton";
 import { CalendarClock, TrendingUp } from "lucide-react";
 
 export default function HomePage() {
   const hydrated = useHydrated();
+  const { t } = useTranslation();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -57,8 +60,6 @@ export default function HomePage() {
   const cycle = getCurrentCycle(today, transferSettings);
 
   const cycleProgressPct = cycle.daysElapsedInCycle / cycle.totalDaysInCycle;
-  // Proxy for "buffer remaining" since we don't separately track the
-  // balance at the start of each cycle — close enough for a v1 score.
   const balanceRemainingPct = Math.min(1, balance / Math.max(1, transferSettings.amountPerTransfer));
 
   const health = getHealthScore(snapshot.pace, debts, savingsGoals, cycleProgressPct, balanceRemainingPct);
@@ -73,11 +74,11 @@ export default function HomePage() {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <StatTile label="Today" value={snapshot.todaySpent} icon={CalendarClock} />
-        <StatTile label="This week" value={snapshot.weekSpent} icon={CalendarClock} />
-        <StatTile label="This month" value={snapshot.monthSpent} icon={CalendarClock} />
+        <StatTile label={t("today")} value={snapshot.todaySpent} icon={CalendarClock} />
+        <StatTile label={t("thisWeek")} value={snapshot.weekSpent} icon={CalendarClock} />
+        <StatTile label={t("thisMonth")} value={snapshot.monthSpent} icon={CalendarClock} />
         <StatTile
-          label="Monthly savings"
+          label={t("monthlySavings")}
           value={monthlySavingsCommitment}
           icon={TrendingUp}
           accent="emerald"
@@ -113,6 +114,10 @@ export default function HomePage() {
       <QuickAddButton onClick={() => setQuickAddOpen(true)} />
       <QuickAddSheet open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* Bynance floating companion */}
+      <BynanceMascot />
+
       <BottomNav />
     </main>
   );

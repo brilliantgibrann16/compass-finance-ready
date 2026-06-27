@@ -18,6 +18,7 @@ import {
   Store, Tag, PieChart, BarChart3,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -31,6 +32,7 @@ export default function ReportsPage() {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [exporting, setExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   const selected = availableMonths[selectedIdx];
   const report: MonthlyReport | null = useMemo(() => {
@@ -75,7 +77,7 @@ export default function ReportsPage() {
   if (availableMonths.length === 0 || !report) {
     return (
       <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-        <PageHeader title="Reports" subtitle="Monthly financial summaries" />
+        <PageHeader title={t("monthlyReports")} subtitle={t("monthlyReportsDesc")} />
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <FileText size={48} className="text-ink-faint" />
           <p className="text-ink-muted">No transaction data yet</p>

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/144</span>
+                <span class='fraction'>0/147</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/144</span>
+                <span class='fraction'>0/147</span>
             </div>
         
             
@@ -255,7 +255,14 @@
 <a name='L190'></a><a href='#L190'>190</a>
 <a name='L191'></a><a href='#L191'>191</a>
 <a name='L192'></a><a href='#L192'>192</a>
-<a name='L193'></a><a href='#L193'>193</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -273,6 +280,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -287,19 +296,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -316,10 +312,28 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -464,6 +478,8 @@ import {
 import { clsx } from "clsx";
 import Link from "next/link";
 import type { NotificationType } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { scheduleDebtReminders, scheduleSavingsReminders } from "@/lib/notifications/scheduler";
 &nbsp;
 <span class="cstat-no" title="statement not covered" >const TYPE_ICONS: Record&lt;NotificationType, React.ElementType&gt; = {</span>
 <span class="cstat-no" title="statement not covered" >  warning: AlertTriangle,</span>
@@ -486,6 +502,7 @@ import type { NotificationType } from "@/lib/types";
 <span class="cstat-no" title="statement not covered" >  const markNotificationRead = useAppStore((s) =&gt; s.markNotificationRead);</span>
 <span class="cstat-no" title="statement not covered" >  const dismissNotification = useAppStore((s) =&gt; s.dismissNotification);</span>
 <span class="cstat-no" title="statement not covered" >  const clearNotifications = useAppStore((s) =&gt; s.clearNotifications);</span>
+<span class="cstat-no" title="statement not covered" >  const { t } = useTranslation();</span>
 &nbsp;
   // Generate fresh notifications on page load
 <span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
@@ -514,6 +531,10 @@ import type { NotificationType } from "@/lib/types";
 <span class="cstat-no" title="statement not covered" >        addNotification(n);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    // Also schedule Capacitor native notifications (no-op on web)
+<span class="cstat-no" title="statement not covered" >    scheduleDebtReminders(state.debts).catch(() =&gt; {});</span>
+<span class="cstat-no" title="statement not covered" >    scheduleSavingsReminders(state.savingsGoals).catch(() =&gt; {});</span>
 <span class="cstat-no" title="statement not covered" >  }, [hydrated, addNotification]);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (!hydrated) {</span>
@@ -529,7 +550,7 @@ import type { NotificationType } from "@/lib/types";
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8"&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;PageHeader title="Notifications" subtitle={`${unread.length} unread`} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;PageHeader title={t("notificationsTitle")} subtitle={`${unread.length} ${t("unread")}`} /&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      {notifications.length &gt; 0 &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;button</span>
@@ -646,7 +667,7 @@ import type { NotificationType } from "@/lib/types";
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-26T21:40:21.494Z
+                at 2026-06-27T14:18:21.920Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

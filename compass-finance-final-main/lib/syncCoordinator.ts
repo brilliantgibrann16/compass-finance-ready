@@ -28,6 +28,10 @@ export interface SyncCoordinatorOptions {
   /** When set, the pending queue is dehydrated to localStorage under this key so
    *  offline mutations survive page reloads and crashes. Omit for pure in-memory. */
   storageKey?: string;
+  /** Optional async provider of an Authorization header value (e.g. a Supabase
+   *  JWT). Invoked per batch so the token is always fresh. Returning an empty
+   *  string sends no Authorization header. */
+  authHeaderProvider?: () => Promise<string> | string;
 }
 
 export interface ChangePayload {
@@ -114,6 +118,10 @@ export class SyncCoordinator {
   private readonly retryMaxDelayMs: number;
   private readonly batchSize: number;
 
+  private readonly authHeaderProvider:
+    | (() => Promise<string> | string)
+    | null = null;
+
   private queue: PendingChange[] = [];
   private storageKey: string | null = null;
   private state: SyncState = "idle";
@@ -138,6 +146,7 @@ export class SyncCoordinator {
     this.retryMaxDelayMs = options.retryMaxDelayMs ?? DEFAULTS.retryMaxDelayMs;
     this.batchSize = Math.max(1, options.batchSize ?? DEFAULTS.batchSize);
     this.storageKey = options.storageKey ?? null;
+    this.authHeaderProvider = options.authHeaderProvider ?? null;
     this.hydrateQueue();
 
     SyncCoordinator.instanceCounter += 1;
@@ -329,9 +338,23 @@ export class SyncCoordinator {
     });
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      // Attach a fresh auth token (e.g. Supabase JWT) per batch when provided.
+      if (this.authHeaderProvider) {
+        try {
+          const auth = await this.authHeaderProvider();
+          if (auth) headers["Authorization"] = `Bearer ${auth}`;
+        } catch {
+          // Token resolution failed — proceed unauthenticated; the server will
+          // reject with a 4xx (fail-fast) if auth is mandatory.
+        }
+      }
+
       const response = await fetchFn(this.endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body,
       });
 

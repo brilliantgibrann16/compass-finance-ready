@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { HealthScoreResult } from "@/lib/engine/healthScore";
 import { ChevronDown, HeartPulse } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,14 +15,15 @@ const BAND_CLASSES: Record<HealthScoreResult["band"], string> = {
   red: "text-coral",
 };
 
-const BAND_COPY: Record<HealthScoreResult["band"], string> = {
-  green: "Healthy",
-  yellow: "Stay alert",
-  red: "Needs attention",
-};
-
 export function HealthScoreCard({ result }: { result: HealthScoreResult }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
+
+  const bandLabels: Record<HealthScoreResult["band"], string> = {
+    green: t("paceOnTrack"),
+    yellow: t("paceOver"),
+    red: t("paceOver"),
+  };
 
   return (
     <Card>
@@ -32,7 +34,7 @@ export function HealthScoreCard({ result }: { result: HealthScoreResult }) {
       >
         <div className="flex items-center gap-2">
           <HeartPulse size={18} className={BAND_CLASSES[result.band]} />
-          <span className="font-medium text-ink">Financial Health</span>
+          <span className="font-medium text-ink">{t("healthScore")}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className={clsx("font-display text-xl font-semibold", BAND_CLASSES[result.band])}>
@@ -43,7 +45,7 @@ export function HealthScoreCard({ result }: { result: HealthScoreResult }) {
           </motion.span>
         </div>
       </button>
-      <p className={clsx("mt-1 text-sm", BAND_CLASSES[result.band])}>{BAND_COPY[result.band]}</p>
+      <p className={clsx("mt-1 text-sm", BAND_CLASSES[result.band])}>{bandLabels[result.band]}</p>
 
       {expanded && (
         <motion.div

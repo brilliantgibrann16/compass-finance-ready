@@ -7,6 +7,7 @@ import { parseQuickAdd } from "@/lib/engine/quickAddParser";
 import { useAppStore } from "@/lib/store";
 import { CATEGORY_LIST } from "@/lib/engine/categoryDetector";
 import { formatNumberID } from "@/lib/utils/currency";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { motion } from "framer-motion";
 import { ArrowDownCircle, ArrowUpCircle, Check } from "lucide-react";
 import { clsx } from "clsx";
@@ -21,6 +22,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
   const [text, setText] = useState("");
   const [categoryOverride, setCategoryOverride] = useState<CategoryId | null>(null);
   const addTransaction = useAppStore((s) => s.addTransaction);
+  const { t } = useTranslation();
 
   const parsed = useMemo(() => parseQuickAdd(text), [text]);
   const effectiveCategory = categoryOverride ?? parsed?.category ?? "other";
@@ -61,7 +63,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
         className="w-full rounded-xl border border-border bg-bg px-4 py-3.5 font-mono text-lg text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
       />
       <p className="mt-2 text-xs text-ink-faint">
-        Bare number or “+” = expense · “-” = income, e.g. <span className="font-mono">-700000 transfer</span>
+        Bare number or &quot;+&quot; = expense · &quot;-&quot; = income, e.g. <span className="font-mono">-700000 transfer</span>
       </p>
 
       {parsed && (
@@ -81,7 +83,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
                 Rp{formatNumberID(parsed.amount)}
               </span>
               <span className="text-sm text-ink-muted">
-                {parsed.kind === "expense" ? "expense" : "income"}
+                {parsed.kind === "expense" ? t("spending") : t("savings")}
               </span>
             </div>
             <CategoryBadge category={effectiveCategory} />
@@ -111,7 +113,7 @@ export function QuickAddSheet({ open, onClose }: QuickAddSheetProps) {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-3 font-medium text-bg transition hover:bg-gold/90"
           >
             <Check size={18} />
-            Save transaction
+            {t("save")}
           </button>
         </motion.div>
       )}

@@ -10,13 +10,13 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          DEFAULT: "#0B0E14",
-          raised: "#141925",
-          hover: "#1C2333",
+          DEFAULT: "var(--color-bg, #0B0E14)",
+          raised: "var(--color-bg-raised, #141925)",
+          hover: "var(--color-bg-hover, #1C2333)",
         },
         border: {
-          DEFAULT: "#242B3D",
-          soft: "#1A2030",
+          DEFAULT: "var(--color-border, #242B3D)",
+          soft: "var(--color-border-soft, #1A2030)",
         },
         gold: {
           DEFAULT: "#F0B429",
@@ -32,9 +32,9 @@ const config: Config = {
           soft: "#F8717122",
         },
         ink: {
-          DEFAULT: "#F5F3EE",
-          muted: "#8A93A6",
-          faint: "#5B6478",
+          DEFAULT: "var(--color-ink, #F5F3EE)",
+          muted: "var(--color-ink-muted, #8A93A6)",
+          faint: "var(--color-ink-faint, #5B6478)",
         },
       },
       fontFamily: {

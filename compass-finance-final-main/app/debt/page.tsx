@@ -12,12 +12,14 @@ import { DebtCountdownHero } from "@/components/debt/DebtCountdownHero";
 import { DebtSourceSection } from "@/components/debt/DebtSourceSection";
 import { DebtTimeline } from "@/components/debt/DebtTimeline";
 import { DebtFreeCelebration } from "@/components/debt/DebtFreeCelebration";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function DebtPage() {
   const hydrated = useHydrated();
   const debts = useAppStore((s) => s.debts);
   const [celebrating, setCelebrating] = useState(false);
   const wasAllPaidOff = useRef<boolean | null>(null);
+  const { t } = useTranslation();
 
   const summary = getAllDebtsSummary(debts);
 
@@ -41,7 +43,7 @@ export default function DebtPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
-      <PageHeader title="Debt-Free Mode" subtitle="Track every installment to zero" />
+      <PageHeader title={t("debtFreeMode")} subtitle={t("debtFreeModeSubtitle")} />
 
       <DebtCountdownHero summary={summary} countdown={countdown} />
 
