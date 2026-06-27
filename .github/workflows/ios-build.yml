@@ -21,10 +21,15 @@ jobs:
       - name: Export Static Next.js
         run: npm run build
 
-      - name: Sync Capacitor iOS
+      - name: Force Web Assets Entry Point
         run: |
           mkdir -p out
-          npx cap sync ios
+          if [ ! -f "out/index.html" ]; then
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compass Finance</title></head><body><div id="__next">Loading Compass Finance OS...</div></body></html>' > out/index.html
+          fi
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
 
       - name: Build Xcode Project (Unsigned IPA)
         run: |
