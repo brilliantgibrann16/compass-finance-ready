@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { formatNumberID } from "@/lib/utils/currency";
 import { Settings } from "lucide-react";
 
@@ -28,6 +29,7 @@ export function DashboardHeader({
       className="flex items-start justify-between"
     >
       <div>
+        <BrandLogo size="md" className="mb-2" />
         <p className="text-sm text-ink-muted">{greeting}</p>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
           Available balance
