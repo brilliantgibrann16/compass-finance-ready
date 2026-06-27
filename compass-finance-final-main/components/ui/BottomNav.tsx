@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, ScanLine, BarChart3, Brain, Bell } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { Home, ScanLine, BarChart3, Brain, MoreHorizontal } from "lucide-react";
+
 import { clsx } from "clsx";
 
 const NAV_ITEMS = [
@@ -12,12 +12,12 @@ const NAV_ITEMS = [
   { href: "/scan", label: "Scan", icon: ScanLine },
   { href: "/insights", label: "Insights", icon: BarChart3 },
   { href: "/coach", label: "Coach", icon: Brain },
-  { href: "/notifications", label: "Alerts", icon: Bell },
+  { href: "/more", label: "More", icon: MoreHorizontal },
 ] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
-  const unreadCount = useAppStore((s) => s.notifications.filter((n) => !n.isRead).length);
+
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md aero-nav pb-[max(0.25rem,env(safe-area-inset-bottom))]">
@@ -37,15 +37,6 @@ export function BottomNav() {
             >
               <span className="relative">
                 <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-                {item.href === "/notifications" && unreadCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-coral text-[9px] font-bold text-white"
-                  >
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </motion.span>
-                )}
               </span>
               <span>{item.label}</span>
               {isActive && (

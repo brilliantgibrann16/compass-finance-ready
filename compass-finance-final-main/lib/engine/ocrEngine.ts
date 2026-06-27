@@ -130,13 +130,13 @@ function detectCategoryFromReceipt(text: string, merchant: string): CategoryId {
 // ---------------------------------------------------------------------------
 // Deterministic mock fallback
 // ---------------------------------------------------------------------------
-// Real OCR (Tesseract.js) downloads its WASM core, worker script, and language
-// training data from a CDN at runtime and spawns a web worker. In offline,
-// sandboxed, or strict-CSP environments (our Content-Security-Policy limits
-// connect-src to 'self'), those network/worker requests are blocked and
-// createWorker()/recognize() throw. Rather than surface a hard "Scanning
-// failed" error, we degrade gracefully to a deterministic, high-fidelity mock
-// receipt so the upload flow always yields a valid, editable transaction.
+// Real OCR (Tesseract.js) downloads its WASM core + worker script from a CDN
+// and loads language training data from public/tessdata/ (local, same-origin).
+// In environments where the WASM core can't load (strict CSP, missing WebAssembly
+// support, or the worker fails to init), recognize() throws. Rather than surface
+// a hard "Scanning failed" error, we degrade gracefully to a deterministic,
+// high-fidelity mock receipt so the upload flow always yields a valid, editable
+// transaction.
 
 // ---------------------------------------------------------------------------
 // Mock receipt datasets
@@ -264,6 +264,7 @@ async function runOcr(imageFile: File | Blob, imageToken: File | null): Promise<
   const { createWorker } = await import("tesseract.js");
 
   const worker = await createWorker("ind+eng", undefined, {
+    langPath: "/tessdata",
     logger: () => {}, // Suppress verbose logging
   });
 

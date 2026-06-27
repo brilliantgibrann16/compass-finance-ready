@@ -1,89 +1,125 @@
-# Compass — Personal Finance OS
+# Compass Finance
 
-A daily-use financial command center: today's safe-to-spend amount, the
-twice-monthly allowance cycle, debt payoff countdown, and long-term
-savings goals (graduation fund, emergency fund), in one dark-mode PWA.
+Personal financial command center — track spending, scan receipts, manage debt installments, set savings goals, and get AI-powered financial coaching. Built as a mobile-first PWA with an optional native iOS pipeline via Capacitor.
 
-## Quick start
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript (strict) |
+| Styling | Tailwind CSS 3 |
+| State | Zustand 4 (persisted to localStorage) |
+| Charts | Recharts 2 |
+| OCR | Tesseract.js 5 (client-side, offline-capable) |
+| Animations | Framer Motion 11 |
+| Testing | Vitest + React Testing Library |
+| iOS Build | Capacitor 8 + GitHub Actions (`xcodebuild`) |
+
+## Features
+
+### ✅ Working
+- **Dashboard** — Safe-to-spend hero, daily/weekly/monthly stats, health score
+- **Quick Add** — Natural language transaction input with category auto-detection
+- **Receipt Scanner** — OCR-based receipt parsing (Indonesian + English), with offline fallback
+- **Smart Insights** — Spending trends, category breakdown, period comparisons
+- **Budget Coach** — Personalized tips based on spending patterns
+- **AI Advisor** — Recommendations, savings forecasts, debt forecasts, merchant analysis, overspending alerts
+- **Analytics** — Bar/pie/line charts, income vs expense, 7d/30d/MTD views
+- **Monthly Reports** — Detailed monthly summaries with PDF export
+- **Debt Tracker** — SPayLater & GoPay Pinjam installment tracking
+- **Savings Goals** — Progress tracking with contribution management
+- **Wishlist** — Priority-based wish tracking with savings progress
+- **Notifications** — System alerts and financial reminders
+- **PWA** — Installable via "Add to Home Screen" on any browser (manifest + icons + service worker)
+- **iOS Pipeline** — GitHub Actions workflow to build unsigned `.ipa` via Capacitor + Xcode (for sideloading via LiveContainer/SideStore)
+
+### ⚠️ Stub / Not Yet Functional
+- **Cloud Sync** — `SyncCoordinator` plumbing exists and the offline queue works, but the `/api/sync` endpoint is a stub that acknowledges changes without persisting them. No user auth, no cloud storage. See `app/api/sync/route.ts` for details.
+
+## Quick Start
 
 ```bash
+# Install dependencies
 npm install
+
+# Start dev server
 npm run dev
+
+# Run tests
+npm test
+
+# Type-check
+npx tsc --noEmit
+
+# Lint
+npm run lint
+
+# Build (web)
+npm run build
+
+# Build (iOS static export — used by the CI pipeline)
+# Note: requires temporarily moving app/api/ aside (the CI workflow handles this)
+MOBILE_EXPORT=true npm run build
 ```
 
-Open http://localhost:3000. Data is stored in your browser's
-`localStorage` — nothing leaves your device in this version.
+## Project Structure
 
-## Install on iPhone
+```
+app/
+├── page.tsx              # Dashboard (home)
+├── scan/                 # Receipt scanner
+├── insights/             # Smart insights + charts
+├── coach/                # Budget coach tips
+├── advisor/              # AI advisor + forecasts
+├── analytics/            # Detailed analytics
+├── reports/              # Monthly reports + PDF export
+├── debt/                 # Debt installment tracker
+├── goals/                # Savings goals
+├── wishlist/             # Wishlist manager
+├── notifications/        # Alerts center
+├── more/                 # Hub page linking to all features
+└── api/sync/             # Sync stub endpoint
 
-1. Deploy it somewhere with HTTPS (see Deployment below) — iOS won't
-   install PWAs served over plain HTTP.
-2. Open the URL in **Safari** (not Chrome — iOS PWA install only works
-   from Safari).
-3. Tap the Share icon → **Add to Home Screen**.
+components/
+├── dashboard/            # Dashboard-specific components
+├── transactions/         # Transaction list, quick add, settings
+├── debt/                 # Debt UI components
+├── goals/                # Goal UI components
+├── wishlist/             # Wishlist UI components
+└── ui/                   # Shared UI (BottomNav, Card, Skeleton, etc.)
 
-## Deployment
+lib/
+├── store.ts              # Zustand store (persisted)
+├── types.ts              # Domain model types
+├── syncCoordinator.ts    # Offline-first sync engine
+├── syncClient.ts         # Store ↔ sync wiring
+├── engine/
+│   ├── ocrEngine.ts      # Tesseract.js receipt scanning
+│   ├── spendingEngine.ts # Safe-to-spend calculations
+│   ├── healthScore.ts    # Financial health scoring
+│   ├── insightsEngine.ts # Insight generation
+│   ├── coachEngine.ts    # Budget coaching tips
+│   ├── advisorEngine.ts  # AI advisor recommendations
+│   ├── analyticsEngine.ts# Analytics computations
+│   ├── debtEngine.ts     # Debt calculations
+│   └── ...
+└── utils/                # Currency formatting, etc.
+```
 
-This is a standard Next.js app — push it to a GitHub repo and import it
-in Vercel, or run `npx vercel` from this directory. No environment
-variables are required for the current (local-storage-only) version.
+## iOS / IPA Build
 
-## Architecture
+The repo includes a GitHub Actions workflow (`.github/workflows/ios-build.yml`) that:
 
-| Concern | Choice | Why |
-|---|---|---|
-| Framework | Next.js 15 (App Router) | Server routes ready for V2 (bank sync, AI assistant) without a rewrite |
-| Styling | Tailwind | Fast iteration, consistent tokens |
-| Animation | Framer Motion | Requested explicitly; used for counters, sheets, progress rings |
-| State | Zustand + `persist` | Minimal boilerplate; the `storage` option is the exact seam where a Supabase-backed adapter drops in later — see `lib/store.ts` |
-| Data model | `lib/types.ts` | Plain TypeScript types, no framework coupling — these can become Supabase table shapes almost unchanged |
+1. Runs `MOBILE_EXPORT=true npm run build` to produce a static export
+2. Runs `npx cap sync ios` to sync the web assets into the Xcode project
+3. Runs `xcodebuild archive` with signing disabled
+4. Packages the archive into an unsigned `.ipa`
 
-All calculation logic (spending pace, transfer cycles, category
-detection, health score, goal projections) lives in `lib/engine/` as
-pure functions with no React or storage dependencies — they're unit
-testable in isolation and reusable if/when a backend is added.
+This `.ipa` can be sideloaded onto an iPhone via **LiveContainer** or **SideStore** (no paid Apple Developer account needed).
 
-## What's built (Phase 1 — the daily loop)
+To trigger: push to `main`/`master`, or manually run the workflow from the GitHub Actions tab.
 
-- Daily Money Command Center dashboard: available balance, Safe-to-Spend
-  Today (with the compass-ring gauge), today/week/month spend, monthly
-  savings commitment
-- Smart Daily Spending Engine (`lib/engine/spendingEngine.ts`)
-- Transfer Cycle System for the twice-monthly allowance (`lib/engine/transferCycle.ts`)
-- Quick Add: type `+11000 geprek`, auto-categorized, editable before saving
-- Smart category detection by keyword (`lib/engine/categoryDetector.ts`)
-- Financial Health Score — v1 heuristic, see `lib/engine/healthScore.ts` for the formula and how to tune it
-- Debt and savings-goal summary cards on the dashboard
-- Settings sheet for balance + transfer schedule
-- PWA manifest + iOS home-screen icons (placeholder ring mark — swap the
-  files in `public/icons/` for real artwork whenever you have a logo)
+## Financial Blueprint
 
-## What's not built yet
-
-This was scoped as a multi-phase build; Phase 1 is the part you'll touch
-every day. Still to come:
-
-- **Phase 2** — dedicated Debt-Free Mode, Graduation Fund, and Emergency
-  Fund detail screens with milestone timelines and celebration
-  animations; Wishlist create/edit UI. Debt and goals currently come
-  from `lib/seedData.ts` — edit the numbers there directly until those
-  screens exist.
-- **Phase 3** — Receipt scanner (Tesseract.js OCR), automatic Insights
-  Engine.
-- **Phase 4** — full animation/accessibility/responsive polish pass,
-  proper app icon artwork, ESLint config.
-
-## Known assumptions worth checking
-
-- **Quick Add sign convention**: a bare number or `+number` logs an
-  *expense*; `-number` logs *income*. All the spec's examples were
-  expenses written with `+`, so this was the only consistent reading —
-  flip it in `lib/engine/quickAddParser.ts` if your mental model is
-  reversed.
-- **Health score** is a simple, documented v1 formula (pace, debt
-  trajectory, savings progress, cycle buffer — 25 points each). Treat it
-  as a starting point to calibrate once you have a few months of real
-  data, not a finished model.
-- **iOS PWA limits**: no push notifications before iOS 16.4, and
-  background sync is limited. Fine for this local-first version; worth
-  knowing before promising notification-driven features in V2.
+See `v10.md` for the financial data blueprint (debt amounts, savings goals, merchant analysis thresholds) that drives the advisor and coach engines.
