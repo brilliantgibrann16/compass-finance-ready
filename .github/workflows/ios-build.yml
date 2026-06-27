@@ -15,11 +15,6 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Cocoapods (Kunci Utama Xcode Workspace)
-        run: |
-          sudo gem install cocoapods
-          pod --version
-
       - name: Install Dependencies
         run: npm ci
 
@@ -39,10 +34,20 @@ jobs:
           npx cap add ios
           npx cap sync ios
 
-      - name: Build Xcode Project (Unsigned IPA)
+      - name: Build Xcode Project (Adaptif SPM / Pods)
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+
+          # Cek apakah proyek menggunakan Workspace (CocoaPods) atau Project (SPM)
+          if [ -d "App.xcworkspace" ]; then
+            echo "=== BUILD MENGGUNAKAN WORKSPACE (COCOAPODS) ==="
+            xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+          else
+            echo "=== BUILD MENGGUNAKAN PROJECT (SWIFT PACKAGE MANAGER) ==="
+            xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+          fi
+
+          echo "=== MEMBUNGKUS MENJADI IPA ==="
           mkdir -p build/Payload
           cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
           cd build && zip -r CompassFinance.ipa Payload/
