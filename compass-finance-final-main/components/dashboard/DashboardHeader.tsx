@@ -1,0 +1,48 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { formatNumberID } from "@/lib/utils/currency";
+import { Settings } from "lucide-react";
+
+function getGreeting(hour: number): string {
+  if (hour < 11) return "Good morning";
+  if (hour < 15) return "Good afternoon";
+  if (hour < 19) return "Good evening";
+  return "Good night";
+}
+
+export function DashboardHeader({
+  balance,
+  onSettingsClick,
+}: {
+  balance: number;
+  onSettingsClick: () => void;
+}) {
+  const greeting = getGreeting(new Date().getHours());
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-start justify-between"
+    >
+      <div>
+        <p className="text-sm text-ink-muted">{greeting}</p>
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+          Available balance
+        </p>
+        <p className="mt-1 font-display text-4xl font-semibold text-ink">
+          <AnimatedNumber value={balance} format={(v) => `Rp${formatNumberID(v)}`} />
+        </p>
+      </div>
+      <button
+        onClick={onSettingsClick}
+        aria-label="Settings"
+        className="rounded-full border border-border-soft p-2.5 text-ink-muted transition hover:border-gold/30 hover:text-gold"
+      >
+        <Settings size={18} />
+      </button>
+    </motion.div>
+  );
+}

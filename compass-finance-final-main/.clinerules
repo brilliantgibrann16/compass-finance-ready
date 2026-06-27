@@ -1,0 +1,94 @@
+# .clinerules — Compass Finance Project Rules
+
+## 1. Project Context
+- Stack: Next.js (App Router) + TypeScript + TailwindCSS.
+- Testing: Vitest + @testing-library/react + jsdom.
+- Config files:
+  - `vitest.config.ts` → environment: `jsdom`, setupFiles: `./vitest.setup.ts`.
+  - `vitest.setup.ts` → global mocks (fetch, matchMedia, ResizeObserver).
+- Jangan ubah `vitest.config.ts` atau `vitest.setup.ts` tanpa konfirmasi eksplisit dari user.
+
+## 2. Testing Rules (WAJIB)
+
+### 2.1 Fake Timers
+- Selalu gunakan **fake timers** untuk komponen / hook yang menyentuh `setTimeout`, `setInterval`, `debounce`, `throttle`, atau animasi.
+- Pattern standar di setiap test file:
+  ```ts
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+  });
+  ```
+- Untuk advance waktu pakai `await vi.advanceTimersByTimeAsync(ms)` — JANGAN pakai `await new Promise(r => setTimeout(r, ...))` karena bakal stuck.
+- Kalau test melibatkan `userEvent`, inisialisasi dengan:
+  ```ts
+  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+  ```
+
+### 2.2 Mock Fetch
+- Gunakan global `mockFetch` yang sudah didefinisikan di `vitest.setup.ts`.
+- WAJIB reset di setiap test:
+  ```ts
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+  ```
+- Jangan pakai `mockClear()` saja — gunakan `mockReset()` supaya implementation lama (mis. `mockResolvedValueOnce`) ikut kebersihkan.
+- Happy-path response:
+  ```ts
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    status: 200,
+    json: async () => ({ /* payload */ }),
+  } as Response);
+  ```
+- Error path test minimal 2 skenario: `ok: false` (4xx/5xx) dan `mockRejectedValueOnce(new Error('Network'))`.
+
+### 2.3 Data Riil (Fixtures)
+- **JANGAN** pakai data dummy generik (`foo`, `bar`, `123`) untuk test domain finansial.
+- Gunakan fixture riil yang sudah disepakati:
+  - **GoPay Pinjam**
+    - `provider: "GoPay Pinjam"`
+    - `outstanding: 1937350` (IDR, tanpa pemisah)
+    - `currency: "IDR"`
+    - `dueDate`: ISO string deterministik, mis. `"2025-07-15T00:00:00.000Z"`.
+  - **SPayLater (ShopeePay Later)**
+    - `provider: "SPayLater"`
+    - `outstanding`: ambil dari fixture `lib/fixtures/spaylater.ts` (konsisten antar test, jangan random).
+    - `currency: "IDR"`.
+- Simpan fixture terpusat di `lib/fixtures/` (mis. `lib/fixtures/loans.ts`) dan import dari sana. Jangan duplikasi angka di banyak test.
+- Format angka rupiah untuk assertion UI: `"Rp 1.937.350"` (pakai `Intl.NumberFormat('id-ID')`). Test cek string ter-format, bukan angka mentah.
+
+### 2.4 Struktur Test
+- Lokasi: co-locate `*.test.ts(x)` di sebelah file yang dites, atau di `__tests__/` sibling folder.
+- Setiap `describe` block minimal punya:
+  1. Happy path (data GoPay Pinjam 1.937.350 IDR).
+  2. Empty / loading state.
+  3. Error state (fetch gagal).
+- Hindari `test.only` / `describe.only` di commit.
+
+## 3. Coding Rules
+- TypeScript strict: tidak boleh `any` implisit. Kalau butuh escape hatch pakai `unknown` + narrowing.
+- Komponen client harus diawali `"use client"`.
+- Currency / number formatting WAJIB lewat helper di `lib/format.ts` (mis. `formatIDR(value: number)`) — jangan inline `toLocaleString` di komponen.
+- Jangan hardcode angka pinjaman di komponen produksi; ambil dari props / API / fixture.
+
+## 4. File Modification Policy
+- Sebelum modifikasi file di `lib/fixtures/`, `vitest.config.ts`, `vitest.setup.ts`, atau `package.json` → konfirmasi dulu ke user.
+- Saat menambah dependency, gunakan `npm install` dan update `package-lock.json`. Jangan ganti package manager.
+
+## 5. Commit & Output
+- Saat membuat test baru, jalankan `npx vitest run <path>` (bukan watch mode) untuk verifikasi sebelum `attempt_completion`.
+- Jangan rewrite seluruh file kalau cukup pakai `replace_in_file` dengan SEARCH/REPLACE block kecil.
+- Selalu jelaskan asumsi terkait nilai outstanding / dueDate kalau fixture belum ada.
+
+## 6. Anti-Patterns (DILARANG)
+- ❌ `jest.*` API (proyek ini Vitest — pakai `vi.*`).
+- ❌ `await new Promise(r => setTimeout(r, x))` di test dengan fake timers.
+- ❌ `Math.random()` / `Date.now()` langsung di test — pakai `vi.setSystemTime(new Date('2025-06-01T00:00:00Z'))`.
+- ❌ Mengubah angka 1.937.350 menjadi nilai lain "biar lebih bulat".
+- ❌ Skip test (`test.skip`) tanpa TODO comment + issue reference.
