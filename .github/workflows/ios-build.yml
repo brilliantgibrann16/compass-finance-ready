@@ -1,0 +1,57 @@
+name: Build iOS IPA
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find Project Root Directory
+        id: locate
+        run: |
+          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/package.json//')
+          echo "project_path=$TARGET_DIR" >> $GITHUB_OUTPUT
+          echo "Found package.json in: $TARGET_DIR"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: ${{ steps.locate.outputs.project_path }}/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd ${{ steps.locate.outputs.project_path }}
+          npm ci
+
+      - name: Export Static Next.js
+        run: |
+          cd ${{ steps.locate.outputs.project_path }}
+          npm run build
+
+      - name: Sync Capacitor iOS
+        run: |
+          cd ${{ steps.locate.outputs.project_path }}
+          npx cap sync ios
+
+      - name: Build Xcode Project (Unsigned IPA)
+        run: |
+          IOS_DIR=$(find . -name "App.xcworkspace" -not -path "*/node_modules/*" | head -n 1 | sed 's/\/App.xcworkspace//')
+          echo "Found Xcode project in: $IOS_DIR"
+          cd "$IOS_DIR"
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release -allowProvisioningUpdates ARCHS="arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean archive -archivePath build/App.xcarchive
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          cd build && zip -r CompassFinance.ipa Payload/
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Compass-Finance-iOS-IPA
+          path: |
+            **/build/CompassFinance.ipa
