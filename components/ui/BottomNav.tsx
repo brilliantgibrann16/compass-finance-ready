@@ -14,10 +14,10 @@ export function BottomNav() {
 
   const NAV_ITEMS = [
     { href: "/", label: t("navHome"), icon: Home },
-    { href: "/scan", label: t("navScan"), icon: ScanLine },
-    { href: "/insights", label: t("navInsights"), icon: BarChart3 },
-    { href: "/coach", label: t("navCoach"), icon: Brain },
-    { href: "/more", label: t("navMore"), icon: MoreHorizontal },
+    { href: "/scan/", label: t("navScan"), icon: ScanLine },
+    { href: "/insights/", label: t("navInsights"), icon: BarChart3 },
+    { href: "/coach/", label: t("navCoach"), icon: Brain },
+    { href: "/more/", label: t("navMore"), icon: MoreHorizontal },
   ] as const;
 
   return (
