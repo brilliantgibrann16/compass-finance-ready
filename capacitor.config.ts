@@ -1,22 +1,27 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.brilliant.compassfinance',
+  appId: 'com.compass.finance',
   appName: 'Compass Finance',
   webDir: 'out',
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_compass',
-      iconColor: '#F0B429',
+      iconColor: '#F0B429'
     },
     SplashScreen: {
       launchAutoHide: false,
-      backgroundColor: '#0B0E14',
+      backgroundColor: '#0B0E14'
     },
+    CapacitorUpdater: {
+      autoUpdate: true,
+      appId: "31083a16-750c-4c7e-99e7-89fe9219f0da",
+      channel: "production"
+    }
   },
   server: {
-    androidScheme: 'https',
-  },
+    androidScheme: 'https'
+  }
 };
 
 export default config;

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, ScanLine, BarChart3, Brain, MoreHorizontal } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
@@ -9,6 +9,7 @@ import { clsx } from "clsx";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useTranslation();
 
   const NAV_ITEMS = [
@@ -32,7 +33,7 @@ export function BottomNav() {
               href={item.href}
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = item.href;
+                router.push(item.href);
               }}
               className={clsx(
                 "relative flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition cursor-pointer",
