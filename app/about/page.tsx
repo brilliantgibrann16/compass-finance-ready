@@ -1,5 +1,6 @@
 "use client";
 
+import pkg from "../../package.json";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BottomNav } from "@/components/ui/BottomNav";
@@ -12,6 +13,7 @@ import {
 
 export default function AboutPage() {
   const { t } = useTranslation();
+  const version = process.env.NEXT_PUBLIC_APP_VERSION || pkg.version;
 
   const values = [
     { key: "valueInclusion" as const, descKey: "valueInclusionDesc" as const, icon: Users, accent: "text-blue-400", bg: "bg-blue-400/10" },
@@ -42,7 +44,7 @@ export default function AboutPage() {
         </div>
         <div className="flex items-center gap-2 rounded-full bg-bg-hover px-3 py-1">
           <Compass size={14} className="text-gold" />
-          <span className="text-xs font-mono text-ink-faint">{t("version")} 2.0.0</span>
+          <span className="text-xs font-mono text-ink-faint">{t("version")} {version}</span>
         </div>
       </motion.div>
 

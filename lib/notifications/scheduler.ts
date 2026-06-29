@@ -72,11 +72,9 @@ async function scheduleNative(notifications: ScheduledNotification[]): Promise<v
   if (notifications.length === 0) return;
 
   try {
-    // Dynamic require at runtime — avoids TypeScript module resolution
-    // when @capacitor/local-notifications is not installed.
-    const moduleName = ["@capacitor", "local-notifications"].join("/");
-    const mod: any = require(moduleName);
-    const LocalNotifications = mod.LocalNotifications;
+    // Dynamic import at runtime — avoids bundling Capacitor plugin for web.
+    const mod: any = await import("@capacitor/local-notifications");
+    const LocalNotifications = mod?.LocalNotifications;
 
     if (!LocalNotifications) return;
 

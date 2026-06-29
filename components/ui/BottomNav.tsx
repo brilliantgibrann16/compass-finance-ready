@@ -12,6 +12,8 @@ export function BottomNav() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const normalizePath = (value: string) => value.replace(/\/$/, "") || "/";
+
   const NAV_ITEMS = [
     { href: "/", label: t("navHome"), icon: Home },
     { href: "/scan/", label: t("navScan"), icon: ScanLine },
@@ -24,7 +26,7 @@ export function BottomNav() {
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md aero-nav pb-[max(0.25rem,env(safe-area-inset-bottom))]">
       <div className="flex items-center justify-around px-2 pt-2">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = normalizePath(pathname ?? "/") === normalizePath(item.href);
           const Icon = item.icon;
 
           return (

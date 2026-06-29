@@ -217,14 +217,14 @@ export default function MorePage() {
   }
 
   const MENU_ITEMS = [
-    { href: "/analytics", label: t("analytics"), description: t("analyticsDesc"), icon: BarChart3, accent: "text-purple-400", accentBg: "bg-purple-400/10" },
-    { href: "/advisor", label: t("aiAdvisor"), description: t("aiAdvisorDesc"), icon: Brain, accent: "text-gold", accentBg: "bg-gold/10" },
-    { href: "/reports", label: t("monthlyReports"), description: t("monthlyReportsDesc"), icon: FileText, accent: "text-sky-400", accentBg: "bg-sky-400/10" },
-    { href: "/debt", label: t("debtTracker"), description: t("debtTrackerDesc"), icon: CreditCard, accent: "text-coral", accentBg: "bg-coral/10" },
-    { href: "/goals", label: t("savingsGoalsMenu"), description: t("savingsGoalsDesc"), icon: Target, accent: "text-emerald", accentBg: "bg-emerald/10" },
-    { href: "/wishlist", label: t("wishlistMenu"), description: t("wishlistDesc"), icon: ShoppingBag, accent: "text-amber-400", accentBg: "bg-amber-400/10" },
-    { href: "/notifications", label: t("notifications"), description: t("notificationsDesc"), icon: Bell, accent: "text-blue-400", accentBg: "bg-blue-400/10" },
-    { href: "/about", label: t("aboutApp"), description: t("aboutAppDesc"), icon: Info, accent: "text-teal-400", accentBg: "bg-teal-400/10" },
+    { href: "/analytics/", label: t("analytics"), description: t("analyticsDesc"), icon: BarChart3, accent: "text-purple-400", accentBg: "bg-purple-400/10" },
+    { href: "/advisor/", label: t("aiAdvisor"), description: t("aiAdvisorDesc"), icon: Brain, accent: "text-gold", accentBg: "bg-gold/10" },
+    { href: "/reports/", label: t("monthlyReports"), description: t("monthlyReportsDesc"), icon: FileText, accent: "text-sky-400", accentBg: "bg-sky-400/10" },
+    { href: "/debt/", label: t("debtTracker"), description: t("debtTrackerDesc"), icon: CreditCard, accent: "text-coral", accentBg: "bg-coral/10" },
+    { href: "/goals/", label: t("savingsGoalsMenu"), description: t("savingsGoalsDesc"), icon: Target, accent: "text-emerald", accentBg: "bg-emerald/10" },
+    { href: "/wishlist/", label: t("wishlistMenu"), description: t("wishlistDesc"), icon: ShoppingBag, accent: "text-amber-400", accentBg: "bg-amber-400/10" },
+    { href: "/notifications/", label: t("notifications"), description: t("notificationsDesc"), icon: Bell, accent: "text-blue-400", accentBg: "bg-blue-400/10" },
+    { href: "/about/", label: t("aboutApp"), description: t("aboutAppDesc"), icon: Info, accent: "text-teal-400", accentBg: "bg-teal-400/10" },
   ];
 
   return (

@@ -88,7 +88,8 @@ async function parseWithOpenAI(
     "- Never invent items that aren't visible in the image.",
   ].join("\n");
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const baseUrl = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").replace(/\/$/, "");
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -257,7 +258,7 @@ function extractFromPlainText(text: string): NormalizedReceipt {
 function pickProvider(): "openai" | "google" | "none" {
   const explicit = process.env.OCR_PROVIDER?.toLowerCase();
   if (explicit === "openai" || explicit === "google") return explicit;
-  if (process.env.OPENAI_API_KEY) return "openai";
+  if (process.env.OPENAI_API_KEY || process.env.OPENAI_API_BASE) return "openai";
   if (process.env.GOOGLE_VISION_API_KEY) return "google";
   return "none";
 }

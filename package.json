@@ -17,6 +17,7 @@
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
     "@capacitor/app": "^8.1.0",
+    "@capacitor/local-notifications": "^8.2.0",
     "@capgo/capacitor-updater": "^8.50.1",
     "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",
