@@ -29,3 +29,4 @@ This repository is a Capacitor-backed Next.js finance app with Supabase integrat
 - The auth flow now has an explicit `/auth/callback` route for OAuth web sign-in.
 - The native-capable `appUrlOpen` handler can accept custom-scheme callbacks from Capacitor and map them into Next.js route navigation.
 - `CURRENT_STATE.md` is being created as the active audit artifact for status tracking.
+- Trigger workflow run with a small commit to verify GitHub Actions.
