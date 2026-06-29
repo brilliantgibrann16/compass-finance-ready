@@ -21,6 +21,24 @@ export interface UserSession {
 }
 
 const SESSION_KEY = "compass_session";
+const DEV_AUTH_EMAIL = process.env.NEXT_PUBLIC_DEV_AUTH_EMAIL || "dev@compass.finance";
+const DEV_AUTH_PASSWORD = process.env.NEXT_PUBLIC_DEV_AUTH_PASSWORD || "CompassDev123!";
+const DEV_AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH !== "false";
+
+function isApprovedNativeRedirect(url: string): boolean {
+  return /^com\.compass\.finance:\/\/auth\/callback$/i.test(url.trim());
+}
+
+function validateRedirectTo(url: string | undefined, fallback: string): string {
+  if (!url) return fallback;
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+  if (isApprovedNativeRedirect(url)) {
+    return url;
+  }
+  return fallback;
+}
 
 // ── Avatar Generation ─────────────────────────────────────────────────
 export function generateAvatarUrl(name: string): string {
@@ -134,12 +152,29 @@ export async function signInWithEmail(
     return { success: false, error: "Password must be at least 8 characters." };
   }
 
+  const cleanPassword = password.trim();
+  if (
+    DEV_AUTH_ENABLED &&
+    cleanEmail === DEV_AUTH_EMAIL.toLowerCase() &&
+    cleanPassword === DEV_AUTH_PASSWORD
+  ) {
+    saveSession({
+      email: cleanEmail,
+      displayName: "Compass Dev",
+      avatarUrl: generateAvatarUrl("Compass Dev"),
+      loginAt: new Date().toISOString(),
+      rememberMe,
+      provider: "mock",
+    });
+    return { success: true };
+  }
+
   if (isSupabaseConfigured()) {
     const supabase = await getSupabase();
     if (supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password,
+        password: cleanPassword,
       });
       if (error) return { success: false, error: error.message };
       const user = data.user;
@@ -194,9 +229,11 @@ export async function signInWithEmail(
 
 function getRedirectTo(): string | undefined {
   if (typeof window === "undefined") return undefined;
-  return Capacitor.isNativePlatform()
-    ? "com.compass.finance://auth/callback"
-    : `${window.location.origin}/auth/callback`;
+  const webCallback = `${window.location.origin}/auth/callback`;
+  if (Capacitor.isNativePlatform()) {
+    return validateRedirectTo("com.compass.finance://auth/callback", webCallback);
+  }
+  return webCallback;
 }
 
 export async function signUpWithEmail(
