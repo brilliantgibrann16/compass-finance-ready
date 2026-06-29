@@ -192,6 +192,13 @@ export async function signInWithEmail(
   return { success: true };
 }
 
+function getRedirectTo(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return Capacitor.isNativePlatform()
+    ? "com.compass.finance://auth/callback"
+    : `${window.location.origin}/auth/callback`;
+}
+
 export async function signUpWithEmail(
   email: string,
   password: string,
@@ -214,8 +221,7 @@ export async function signUpWithEmail(
         password,
         options: {
           data: { full_name: displayName },
-          emailRedirectTo:
-            typeof window !== "undefined" ? `${window.location.origin}/` : undefined,
+          emailRedirectTo: getRedirectTo(),
         },
       });
       if (error) return { success: false, error: error.message };
@@ -240,6 +246,10 @@ export async function signUpWithEmail(
       });
       return { success: true };
     }
+    return {
+      success: false,
+      error: "Supabase client failed to initialize. Check your environment and dependencies.",
+    };
   }
 
   // ── Mock fallback: persist hashed credentials with emailVerified=false ──
@@ -308,13 +318,7 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
         "Supabase client failed to load. Run `npm install @supabase/supabase-js` and reload.",
     };
   }
-  // Choose a deep-link redirect for native builds so the callback returns
-  // into the Capacitor app instead of losing session state in the browser.
-  const redirectTo = typeof window !== "undefined"
-    ? Capacitor.isNativePlatform()
-      ? "com.compass.finance://auth/callback"
-      : `${window.location.origin}/`
-    : undefined;
+  const redirectTo = getRedirectTo();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -332,11 +336,15 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
     const supabase = await getSupabase();
     if (supabase) {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: getRedirectTo(),
       });
       if (error) return { success: false, error: error.message };
       return { success: true };
     }
+    return {
+      success: false,
+      error: "Supabase client failed to initialize. Check your environment and dependencies.",
+    };
   }
   // Mock fallback — surface the request without leaking which emails exist.
   return { success: true };

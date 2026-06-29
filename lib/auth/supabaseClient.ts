@@ -12,6 +12,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { createClient } from "@supabase/supabase-js";
+
 let supabaseInstance: any = undefined;
 const RESOLVED = Symbol("resolved");
 
@@ -20,16 +22,9 @@ function createSupabaseClient(): any {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) return null;
-
-  // Dynamic require at runtime only — avoids TypeScript module resolution
-  // and webpack bundling when @supabase/supabase-js is not installed.
   try {
-    const moduleName = ["@supabase", "supabase-js"].join("/");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(moduleName);
-    return mod.createClient(url, key);
+    return createClient(url, key);
   } catch {
-    // @supabase/supabase-js is not installed — graceful fallback
     return null;
   }
 }

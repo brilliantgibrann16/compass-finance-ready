@@ -51,17 +51,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     let removeListener: (() => void) | undefined;
 
+    const resolveAppPath = (url: string) => {
+      if (!url) return null;
+      try {
+        if (/^https?:\/\//i.test(url)) {
+          const parsedUrl = new URL(url);
+          return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+        }
+      } catch {
+        // Fallback to manual parsing for non-HTTP custom schemes.
+      }
+
+      const stripped = url.replace(/^[^:]+:\/\/?/, "");
+      if (!stripped) return null;
+      const normalized = stripped.startsWith("/") ? stripped : `/${stripped}`;
+      return normalized;
+    };
+
     (async () => {
       try {
         const listener = await App.addListener("appUrlOpen", (event) => {
           if (!event?.url) return;
-          try {
-            const parsedUrl = new URL(event.url);
-            const redirectPath = `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
-            router.push(redirectPath);
-          } catch {
-            // Ignore malformed URLs from third-party callbacks.
-          }
+          const redirectPath = resolveAppPath(event.url);
+          if (!redirectPath) return;
+          router.push(redirectPath);
         });
         removeListener = () => listener.remove();
       } catch {
