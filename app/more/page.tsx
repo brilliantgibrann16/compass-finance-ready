@@ -17,7 +17,8 @@ import {
   Info, Globe, Sun, Moon, LogOut,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { signOut } from "@/lib/auth/useAuth";
+import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/lib/auth/AuthContext";
 
 // ---------------------------------------------------------------------------
 // Backup / Restore constants & validation
@@ -130,6 +131,8 @@ export default function MorePage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingRestore, setPendingRestore] = useState<string | null>(null);
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuthContext();
 
   const flash = useCallback((message: string, kind: ToastKind) => {
     setToast({ message, kind });
@@ -192,9 +195,12 @@ export default function MorePage() {
   }, []);
 
   const handleSignOut = useCallback(async () => {
-    await signOut();
-    window.location.reload();
-  }, []);
+    // Clear Supabase + local session state via AuthContext, then strictly
+    // redirect to "/" — AppShell's gate will surface LoginScreen as soon as
+    // status flips to "unauthenticated".
+    await logout();
+    router.replace("/");
+  }, [logout, router]);
 
   if (!hydrated) {
     return (

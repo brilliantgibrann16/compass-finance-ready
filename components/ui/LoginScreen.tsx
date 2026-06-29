@@ -32,6 +32,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [confirmPwd, setConfirmPwd] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegisterPwd, setShowRegisterPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +43,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError("");
+      setSuccessMsg("");
       if (!email.trim() || !password.trim()) {
         setError(t("enterEmailAndPassword"));
         return;
@@ -50,9 +53,17 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       setIsLoading(false);
       if (result.success) {
         onLogin();
-      } else {
-        setError(result.error || "Sign in failed");
+        return;
       }
+      // Verification-required errors are informational, not failures.
+      if (result.needsVerification) {
+        setSuccessMsg(result.error || "Please verify your email before signing in.");
+        // AuthContext picks up the partial session and AppShell flips to the
+        // VerifyEmailGate automatically — nothing else to do here.
+        onLogin();
+        return;
+      }
+      setError(result.error || "Sign in failed");
     },
     [email, password, rememberMe, onLogin, t],
   );
@@ -61,8 +72,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError("");
+      setSuccessMsg("");
       if (!email.trim() || !password.trim()) {
         setError(t("enterEmailAndPassword"));
+        return;
+      }
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters.");
         return;
       }
       if (password !== confirmPwd) {
@@ -74,9 +90,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       setIsLoading(false);
       if (result.success) {
         onLogin();
-      } else {
-        setError(result.error || "Registration failed");
+        return;
       }
+      if (result.needsVerification) {
+        // Send the user back to the sign-in view with a verification notice
+        // — they cannot enter the app until they click the email link.
+        setSuccessMsg(result.error || "Account created. Check your inbox to verify your email.");
+        setView("signin");
+        setPassword("");
+        setConfirmPwd("");
+        return;
+      }
+      setError(result.error || "Registration failed");
     },
     [email, password, confirmPwd, displayName, rememberMe, onLogin, t],
   );
@@ -206,6 +231,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
                 className="mb-4 text-center text-xs text-coral">{error}</motion.p>
             )}
+            {!error && successMsg && (
+              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-4 text-center text-xs text-emerald">{successMsg}</motion.p>
+            )}
 
             <button type="submit" disabled={isLoading}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-3.5 font-display font-semibold text-bg transition hover:bg-gold/90 active:scale-[0.98] disabled:opacity-60">
@@ -260,19 +289,34 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted">
+              <label htmlFor="register-password" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted">
                 {t("password")}
               </label>
-              <input type="password" autoComplete="new-password" placeholder="••••••••"
-                value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+              <div className="relative">
+                <input id="register-password" type={showRegisterPwd ? "text" : "password"} autoComplete="new-password" placeholder="••••••••"
+                  value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputClass} pr-11`} />
+                <button type="button" onClick={() => setShowRegisterPwd((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint transition hover:text-ink-muted"
+                  aria-label={showRegisterPwd ? "Hide password" : "Show password"}>
+                  {showRegisterPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="mt-1 text-[10px] text-ink-faint">Minimum 8 characters.</p>
             </div>
 
             <div className="mb-5">
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted">
+              <label htmlFor="register-confirm" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted">
                 {t("confirmPassword")}
               </label>
-              <input type="password" autoComplete="new-password" placeholder="••••••••"
-                value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className={inputClass} />
+              <div className="relative">
+                <input id="register-confirm" type={showConfirmPwd ? "text" : "password"} autoComplete="new-password" placeholder="••••••••"
+                  value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className={`${inputClass} pr-11`} />
+                <button type="button" onClick={() => setShowConfirmPwd((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint transition hover:text-ink-muted"
+                  aria-label={showConfirmPwd ? "Hide password" : "Show password"}>
+                  {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             {error && (

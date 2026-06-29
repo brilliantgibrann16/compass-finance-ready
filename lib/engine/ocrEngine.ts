@@ -2,10 +2,96 @@ import { detectCategory } from "@/lib/engine/categoryDetector";
 import type { CategoryId, ReceiptItem, ReceiptScanResult } from "@/lib/types";
 
 /**
- * OCR-based receipt scanner using Tesseract.js.
- * Extracts merchant, total, date, and category from receipt images.
- * Runs entirely client-side — no API calls needed.
+ * Receipt scanner pipeline.
+ *
+ *   Vision API  →  on-device Tesseract  →  hard failure
+ *
+ * The hosted Vision endpoint (`/api/ocr`) is tried first because it produces
+ * structured items + totals. If it's unavailable (no provider key configured,
+ * non-2xx response, offline), we fall through to the on-device Tesseract
+ * pipeline, which extracts the merchant / total / date heuristically. If both
+ * fail, scanReceipt() throws — the UI surfaces its "Try again" error state.
+ *
+ * NOTE: there is no hardcoded "Pop Mie / Kanzler / 75.400" mock fallback. The
+ * previous version returned that dataset whenever OCR was slow or blocked,
+ * which made the scanner appear to "work" with completely fabricated data.
  */
+
+// ---------------------------------------------------------------------------
+// Vision API client (preferred path)
+// ---------------------------------------------------------------------------
+
+interface VisionApiResponse {
+  provider: string;
+  merchant: string;
+  items: ReceiptItem[];
+  totalAmount: number;
+  date: string;
+  currency: "IDR";
+  rawText: string;
+  confidence: number;
+  error?: string;
+}
+
+async function scanWithVisionApi(image: File | Blob): Promise<ReceiptScanResult> {
+  // Convert Blob to a File so the server can read a sensible filename / type.
+  const file =
+    image instanceof File
+      ? image
+      : new File([image], "receipt.jpg", { type: image.type || "image/jpeg" });
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch("/api/ocr", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = (await response.json()) as { error?: string };
+      detail = body.error ?? "";
+    } catch {
+      /* ignore */
+    }
+    throw new Error(
+      detail || `Vision API responded with HTTP ${response.status}.`,
+    );
+  }
+
+  const payload = (await response.json()) as VisionApiResponse;
+  const merchant = payload.merchant?.trim() || "Unknown merchant";
+  const items: ReceiptItem[] = Array.isArray(payload.items) ? payload.items : [];
+  const totalAmount =
+    Number.isFinite(payload.totalAmount) && payload.totalAmount > 0
+      ? Math.round(payload.totalAmount)
+      : items.reduce((sum, it) => sum + (Number(it.price) || 0), 0);
+
+  if (!totalAmount) {
+    throw new Error("Vision API returned a receipt with no total amount.");
+  }
+
+  const category = detectCategoryFromReceipt(
+    `${merchant}\n${items.map((it) => it.name).join("\n")}\n${payload.rawText ?? ""}`,
+    merchant,
+  );
+
+  return {
+    merchant,
+    amount: totalAmount,
+    date: payload.date && /^\d{4}-\d{2}-\d{2}$/.test(payload.date) ? payload.date : todayIso(),
+    category,
+    confidence: Math.max(0, Math.min(100, Math.round(payload.confidence ?? 0))),
+    rawText: payload.rawText ?? "",
+    items: items.length > 0 ? items : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// On-device Tesseract fallback
+// ---------------------------------------------------------------------------
 
 interface ExtractionResult {
   merchant: string;
@@ -55,18 +141,15 @@ function extractDate(text: string): { date: string; confidence: number } {
         let year: string, month: string, day: string;
 
         if (/^\d{4}$/.test(match[1] ?? "")) {
-          // YYYY-MM-DD format
           year = match[1] ?? "";
           month = (match[2] ?? "").padStart(2, "0");
           day = (match[3] ?? "").padStart(2, "0");
         } else if (MONTH_MAP[(match[2] ?? "").toLowerCase().slice(0, 3)]) {
-          // DD Mon YYYY format
           day = (match[1] ?? "").padStart(2, "0");
           month = MONTH_MAP[(match[2] ?? "").toLowerCase().slice(0, 3)] ?? "01";
           year = match[3] ?? "";
           if (year.length === 2) year = `20${year}`;
         } else {
-          // DD/MM/YYYY format
           day = (match[1] ?? "").padStart(2, "0");
           month = (match[2] ?? "").padStart(2, "0");
           year = match[3] ?? "";
@@ -79,29 +162,23 @@ function extractDate(text: string): { date: string; confidence: number } {
           return { date: dateStr, confidence: 0.85 };
         }
       } catch {
-        // Continue to next pattern
+        /* try next pattern */
       }
     }
   }
-  return { date: new Date().toISOString().slice(0, 10), confidence: 0.3 };
+  return { date: todayIso(), confidence: 0.3 };
 }
 
 function extractMerchant(text: string): { merchant: string; confidence: number } {
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-  // First non-empty line is typically the merchant name
   const firstLine = lines[0] ?? "";
-  
-  // Filter out lines that look like dates, amounts, or very short
   if (firstLine.length > 2 && !/^\d+[\/\-]/.test(firstLine)) {
     return { merchant: firstLine.slice(0, 50), confidence: 0.7 };
   }
-
-  // Try second line
   const secondLine = lines[1] ?? "";
   if (secondLine.length > 2) {
     return { merchant: secondLine.slice(0, 50), confidence: 0.5 };
   }
-
   return { merchant: "Unknown merchant", confidence: 0.2 };
 }
 
@@ -109,9 +186,8 @@ function extractAll(text: string): ExtractionResult {
   const amountResult = extractAmount(text);
   const dateResult = extractDate(text);
   const merchantResult = extractMerchant(text);
-
-  const avgConfidence = (amountResult.confidence + dateResult.confidence + merchantResult.confidence) / 3;
-
+  const avgConfidence =
+    (amountResult.confidence + dateResult.confidence + merchantResult.confidence) / 3;
   return {
     merchant: merchantResult.merchant,
     amount: amountResult.amount,
@@ -121,45 +197,10 @@ function extractAll(text: string): ExtractionResult {
 }
 
 function detectCategoryFromReceipt(text: string, merchant: string): CategoryId {
-  // Try to detect from the full text first, then the merchant
   const fromText = detectCategory(text);
   if (fromText !== "other") return fromText;
   return detectCategory(merchant);
 }
-
-// ---------------------------------------------------------------------------
-// Deterministic mock fallback
-// ---------------------------------------------------------------------------
-// Real OCR (Tesseract.js) downloads its WASM core + worker script from a CDN
-// and loads language training data from public/tessdata/ (local, same-origin).
-// In environments where the WASM core can't load (strict CSP, missing WebAssembly
-// support, or the worker fails to init), recognize() throws. Rather than surface
-// a hard "Scanning failed" error, we degrade gracefully to a deterministic,
-// high-fidelity mock receipt so the upload flow always yields a valid, editable
-// transaction.
-
-// ---------------------------------------------------------------------------
-// Mock receipt datasets
-// ---------------------------------------------------------------------------
-
-/** Baseline Indomaret grocery receipt (Rp 75.400). */
-const INDOMARET_ITEMS: ReceiptItem[] = [
-  { name: "Pop Mie Ayam", qty: 2, price: 13000 },
-  { name: "Nestle Pure Life", qty: 1, price: 3500 },
-  { name: "Le Minerale", qty: 2, price: 7000 },
-  { name: "Ultra Kacang Hijau", qty: 1, price: 6900 },
-  { name: "Nutrijel", qty: 1, price: 5000 },
-  { name: "Kanzler", qty: 1, price: 40000 },
-];
-const INDOMARET_MERCHANT = "Indomaret";
-const INDOMARET_CATEGORY: CategoryId = "shopping";
-
-/** Sari Roti receipt from Alfamart (Rp 4.500). */
-const SARIROTI_ITEMS: ReceiptItem[] = [
-  { name: "SARI ROTI SW CK", qty: 1, price: 4500 },
-];
-const SARIROTI_MERCHANT = "Alfamart / St Tanah Abang";
-const SARIROTI_CATEGORY: CategoryId = "food";
 
 function todayIso(): string {
   const d = new Date();
@@ -169,64 +210,11 @@ function todayIso(): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Extract a lowercase context string from the image input for matching. */
-function resolveImageContext(imageInput: File | string | null): string {
-  if (!imageInput) return "";
-  if (typeof imageInput === "string") return imageInput.toLowerCase();
-  // File object — use the filename for substring matching
-  return (imageInput.name ?? "").toLowerCase();
-}
+// ---------------------------------------------------------------------------
+// Tesseract pipeline with an abortable timeout
+// ---------------------------------------------------------------------------
 
-interface MockDataset {
-  items: ReceiptItem[];
-  merchant: string;
-  category: CategoryId;
-}
-
-/** Adaptive switch matrix: filename substrings → receipt datasets. */
-function selectMockDataset(context: string): MockDataset {
-  if (context.includes("sari") || context.includes("roti") || context.includes("alfamart")) {
-    return { items: SARIROTI_ITEMS, merchant: SARIROTI_MERCHANT, category: SARIROTI_CATEGORY };
-  }
-  // Default: Indomaret baseline
-  return { items: INDOMARET_ITEMS, merchant: INDOMARET_MERCHANT, category: INDOMARET_CATEGORY };
-}
-
-/**
- * Build a deterministic, high-fidelity mock ReceiptScanResult from the uploaded
- * file. Inspects the file metadata / filename string to route to the correct
- * receipt dataset. Integrates cleanly with the Zustand store (valid CategoryId,
- * ISO date, positive integer IDR amount).
- */
-function buildMockResult(imageInput: File | string | null = null): ReceiptScanResult {
-  const context = resolveImageContext(imageInput);
-  const dataset = selectMockDataset(context);
-  const date = todayIso();
-  const total = dataset.items.reduce((sum, it) => sum + it.price, 0);
-  const rawText = [
-    dataset.merchant.toUpperCase(),
-    ...dataset.items.map(
-      (it) => `${it.name} x${it.qty}  ${it.price.toLocaleString("id-ID")}`
-    ),
-    `TOTAL  ${total.toLocaleString("id-ID")}`,
-    date,
-  ].join("\n");
-  return {
-    merchant: dataset.merchant,
-    amount: total,
-    date,
-    category: dataset.category,
-    confidence: 88,
-    rawText,
-    items: dataset.items,
-  };
-}
-
-/** Hard ceiling for the OCR path. If Tesseract can't init/download + recognize
- *  within this window (CSP-blocked CDN, slow worker fetch, offline, missing
- *  WASM), we abandon it and fall back to the deterministic local parser so the
- *  UI never hangs on "Scanning receipt...". */
-const OCR_TIMEOUT_MS = 3000;
+const OCR_TIMEOUT_MS = 15_000;
 
 interface OcrRunControl {
   signal: AbortSignal;
@@ -235,16 +223,14 @@ interface OcrRunControl {
 
 function withAbortableTimeout<T>(
   workFactory: (control: OcrRunControl) => Promise<T>,
-  ms: number
+  ms: number,
 ): Promise<T> {
   const controller = new AbortController();
   const workers = new Set<{ terminate: () => Promise<unknown> }>();
   let settled = false;
 
   const terminateWorkers = () => {
-    for (const worker of workers) {
-      void worker.terminate().catch(() => {});
-    }
+    for (const worker of workers) void worker.terminate().catch(() => {});
     workers.clear();
   };
 
@@ -282,77 +268,70 @@ function withAbortableTimeout<T>(
         clearTimeout(timer);
         terminateWorkers();
         reject(err);
-      }
+      },
     );
   });
 }
+
+async function scanWithTesseract(image: File | Blob): Promise<ReceiptScanResult> {
+  return withAbortableTimeout(async (control) => {
+    if (control.signal.aborted) throw new Error("OCR_ABORTED");
+
+    const { createWorker } = await import("tesseract.js");
+    if (control.signal.aborted) throw new Error("OCR_ABORTED");
+
+    const worker = await createWorker("ind+eng", undefined, {
+      langPath: "/tessdata",
+      logger: () => {},
+    });
+    control.registerWorker(worker);
+
+    try {
+      if (control.signal.aborted) throw new Error("OCR_ABORTED");
+      const { data } = await worker.recognize(image);
+      if (control.signal.aborted) throw new Error("OCR_ABORTED");
+
+      const rawText = data.text ?? "";
+      const extraction = extractAll(rawText);
+      if (!extraction.amount || extraction.amount <= 0) {
+        throw new Error("Receipt text was unreadable — no total found.");
+      }
+
+      const category = detectCategoryFromReceipt(rawText, extraction.merchant);
+      return {
+        merchant: extraction.merchant,
+        amount: extraction.amount,
+        date: extraction.date || todayIso(),
+        category,
+        confidence: extraction.confidence,
+        rawText,
+      };
+    } finally {
+      await worker.terminate().catch(() => {});
+    }
+  }, OCR_TIMEOUT_MS);
+}
+
+// ---------------------------------------------------------------------------
+// Public entry points
+// ---------------------------------------------------------------------------
 
 export async function scanReceipt(imageFile: File | Blob): Promise<ReceiptScanResult> {
-  // Preserve the File reference for adaptive mock routing (Blob has no .name)
-  const imageToken: File | null = imageFile instanceof File ? imageFile : null;
+  // 1) Preferred: hosted Vision API. Bubbles up errors so we can fall back.
   try {
-    // Race the entire OCR pipeline (import + worker download + recognize)
-    // against a 3s ceiling. Any slowness or failure degrades INSTANTLY to the
-    // deterministic mock, so the scanner UI can never get stuck loading.
-    return await withAbortableTimeout(
-      (control) => runOcr(imageFile, imageToken, control),
-      OCR_TIMEOUT_MS
-    );
-  } catch {
-    return buildMockResult(imageToken);
-  }
-}
-
-/** The actual Tesseract pipeline, isolated so scanReceipt can race it against a
- *  timeout without leaving the UI hung if the worker never resolves. */
-async function runOcr(
-  imageFile: File | Blob,
-  imageToken: File | null,
-  control: OcrRunControl
-): Promise<ReceiptScanResult> {
-  if (control.signal.aborted) throw new Error("OCR_ABORTED");
-
-  // Dynamic import to avoid SSR issues and code-split Tesseract.js
-  const { createWorker } = await import("tesseract.js");
-
-  if (control.signal.aborted) throw new Error("OCR_ABORTED");
-
-  const worker = await createWorker("ind+eng", undefined, {
-    langPath: "/tessdata",
-    logger: () => {}, // Suppress verbose logging
-  });
-  control.registerWorker(worker);
-
-  if (control.signal.aborted) throw new Error("OCR_ABORTED");
-
-  try {
-    const { data } = await worker.recognize(imageFile);
-    if (control.signal.aborted) throw new Error("OCR_ABORTED");
-    const rawText = data.text;
-    const extraction = extractAll(rawText);
-
-    // OCR ran but produced nothing usable — degrade to the deterministic mock.
-    if (!extraction.amount || extraction.amount <= 0) {
-      return buildMockResult(imageToken);
+    return await scanWithVisionApi(imageFile);
+  } catch (visionErr) {
+    // Vision is unavailable (no key, 501, network, etc.) — try local Tesseract.
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("[ocrEngine] Vision API failed, falling back to Tesseract:", visionErr);
     }
-
-    const category = detectCategoryFromReceipt(rawText, extraction.merchant);
-    return {
-      merchant: extraction.merchant,
-      amount: extraction.amount,
-      date: extraction.date || todayIso(),
-      category,
-      confidence: extraction.confidence,
-      rawText,
-    };
-  } finally {
-    await worker.terminate().catch(() => {});
   }
+
+  // 2) Fallback: on-device Tesseract. Throws on failure — no mock data.
+  return scanWithTesseract(imageFile);
 }
 
-/**
- * Lightweight scan from a data URL (for camera captures).
- */
 export async function scanReceiptFromUrl(dataUrl: string): Promise<ReceiptScanResult> {
   const response = await fetch(dataUrl);
   const blob = await response.blob();

@@ -26,71 +26,79 @@ vi.mock("tesseract.js", () => {
   };
 });
 
+// Make the Vision API path deterministically fail so Tesseract is exercised
+// without making real network calls during tests.
+beforeEach(() => {
+  shouldFailToLoad = false;
+  mockTextResult = "WARTEG MANDIRI\nPop Mie Ayam x2 26.000\nTOTAL 26.000\n2026-06-15";
+  // Override global fetch so /api/ocr is never reached during unit tests.
+  // (jsdom can't parse the relative URL anyway — return 501 like the real handler.)
+  globalThis.fetch = vi.fn().mockResolvedValue({
+    ok: false,
+    status: 501,
+    json: async () => ({ error: "OCR provider not configured" }),
+  } as unknown as Response);
+});
+
 describe("OCR Engine", () => {
-  beforeEach(() => {
-    shouldFailToLoad = false;
-    mockTextResult = "WARTEG MANDIRI\nPop Mie Ayam x2 26.000\nTOTAL 26.000\n2026-06-15";
-  });
-
-  describe("buildMockResult / selectMockDataset (via scanReceipt fallback or File token)", () => {
-    it("returns Sari Roti mock result when filename matches sari/roti/alfamart", async () => {
-      const dummyFile = new File(["dummy content"], "sari-roti-receipt.jpg", { type: "image/jpeg" });
-      shouldFailToLoad = true;
-
+  describe("scanReceipt — real OCR via Tesseract fallback", () => {
+    it("parses merchant and amount when Tesseract returns readable text", async () => {
+      const dummyFile = new File(["dummy content"], "warteg.jpg", {
+        type: "image/jpeg",
+      });
       const result = await scanReceipt(dummyFile);
-      expect(result.merchant).toBe("Alfamart / St Tanah Abang");
-      expect(result.amount).toBe(4500);
-      expect(result.category).toBe("food");
-      expect(result.items).toHaveLength(1);
-    });
 
-    it("returns Indomaret mock result as the default fallback", async () => {
-      const dummyFile = new File(["dummy content"], "random_receipt.jpg", { type: "image/jpeg" });
-      shouldFailToLoad = true;
-
-      const result = await scanReceipt(dummyFile);
-      expect(result.merchant).toBe("Indomaret");
-      expect(result.amount).toBe(75400); // sum of Indomaret items
-      expect(result.category).toBe("shopping");
-      expect(result.items).toBeDefined();
-    });
-  });
-
-  describe("scanReceipt success path (with mocked Tesseract)", () => {
-    it("successfully parses OCR result when recognize succeeds", async () => {
-      const dummyFile = new File(["dummy content"], "warteg.jpg", { type: "image/jpeg" });
-      const result = await scanReceipt(dummyFile);
-      
       expect(result.merchant).toBe("WARTEG MANDIRI");
       expect(result.amount).toBe(26000);
       expect(result.category).toBe("food"); // WARTEG maps to food
       expect(result.confidence).toBeGreaterThan(0);
     });
 
-    it("degrades to mock if OCR output has no valid amount", async () => {
+    it("throws when Tesseract returns text with no valid total (no mock leak)", async () => {
       mockTextResult = "No amount here";
+      const dummyFile = new File(["dummy content"], "empty.jpg", {
+        type: "image/jpeg",
+      });
+      await expect(scanReceipt(dummyFile)).rejects.toThrow(
+        /unreadable|no total/i
+      );
+    });
 
-      const dummyFile = new File(["dummy content"], "empty.jpg", { type: "image/jpeg" });
-      const result = await scanReceipt(dummyFile);
-      // default fallback is Indomaret
-      expect(result.merchant).toBe("Indomaret");
+    it("throws when Tesseract fails to load and Vision API is unavailable", async () => {
+      shouldFailToLoad = true;
+      const dummyFile = new File(["dummy content"], "sari-roti.jpg", {
+        type: "image/jpeg",
+      });
+      // No more silent fallback to Alfamart/Sari Roti/Indomaret fixtures.
+      await expect(scanReceipt(dummyFile)).rejects.toBeInstanceOf(Error);
     });
   });
 
   describe("scanReceiptFromUrl", () => {
-    it("fetches data URL and returns scan result", async () => {
-      // Mock global fetch
+    it("fetches a data URL and returns a scan result", async () => {
       const mockBlob = new Blob(["dummy content"], { type: "image/jpeg" });
       const mockResponse = {
         blob: vi.fn().mockResolvedValue(mockBlob),
       };
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
+      // First call (inside scanReceiptFromUrl) returns the blob;
+      // subsequent /api/ocr fetch returns 501 so Tesseract path is used.
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce(mockResponse as unknown as Response)
+        .mockResolvedValue({
+          ok: false,
+          status: 501,
+          json: async () => ({ error: "OCR provider not configured" }),
+        } as unknown as Response);
 
       try {
         const result = await scanReceiptFromUrl("data:image/jpeg;base64,dummy");
-        expect(globalThis.fetch).toHaveBeenCalledWith("data:image/jpeg;base64,dummy");
+        expect(globalThis.fetch).toHaveBeenCalledWith(
+          "data:image/jpeg;base64,dummy"
+        );
         expect(result).toBeDefined();
+        expect(result.merchant).toBe("WARTEG MANDIRI");
       } finally {
         globalThis.fetch = originalFetch;
       }

@@ -15,8 +15,8 @@ const config: CapacitorConfig = {
     },
     CapacitorUpdater: {
       autoUpdate: true,
-      appId: "31083a16-750c-4c7e-99e7-89fe9219f0da",
-      channel: "production"
+      appId: "com.compass.finance",
+      defaultChannel: "production"
     }
   },
   server: {

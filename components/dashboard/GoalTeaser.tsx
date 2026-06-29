@@ -10,11 +10,10 @@ import type { SavingsGoal } from "@/lib/types";
 import { GraduationCap, ShieldCheck } from "lucide-react";
 
 const ICONS = { graduation: GraduationCap, emergency: ShieldCheck, custom: ShieldCheck } as const;
-const ROUTE_BY_TYPE = {
-  graduation: "/goals/graduation",
-  emergency: "/goals/emergency",
-  custom: "/goals/emergency",
-} as const;
+
+function getGoalHref(goal: SavingsGoal): string {
+  return `/goals/detail?id=${encodeURIComponent(goal.id)}`;
+}
 
 export function GoalTeaser({ goal }: { goal: SavingsGoal }) {
   const { t } = useTranslation();
@@ -22,7 +21,7 @@ export function GoalTeaser({ goal }: { goal: SavingsGoal }) {
   const Icon = ICONS[goal.type];
 
   return (
-    <Link href={ROUTE_BY_TYPE[goal.type]}>
+    <Link href={getGoalHref(goal)}>
       <Card className="cursor-pointer transition hover:border-gold/30">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
