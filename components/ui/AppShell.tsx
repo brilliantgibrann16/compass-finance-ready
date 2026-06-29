@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { App } from "@capacitor/app";
 import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { Mail, RefreshCcw, LogOut } from "lucide-react";
 import { SplashScreen } from "@/components/ui/SplashScreen";
@@ -30,6 +32,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleSplashFinished = useCallback(() => setSplashDone(true), []);
 
+  const router = useRouter();
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -39,6 +43,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       // Ignore web/runtime failures so the native readiness signal stays safe.
     });
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof App?.addListener !== "function") {
+      return;
+    }
+
+    let removeListener: (() => void) | undefined;
+
+    (async () => {
+      try {
+        const listener = await App.addListener("appUrlOpen", (event) => {
+          if (!event?.url) return;
+          try {
+            const parsedUrl = new URL(event.url);
+            const redirectPath = `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+            router.push(redirectPath);
+          } catch {
+            // Ignore malformed URLs from third-party callbacks.
+          }
+        });
+        removeListener = () => listener.remove();
+      } catch {
+        // Listener registration failed; do nothing.
+      }
+    })();
+
+    return () => {
+      removeListener?.();
+    };
+  }, [router]);
 
   // Surface the splash for at most one auth-resolution cycle. After the
   // initial mount, status leaves "loading" and we stop showing it.

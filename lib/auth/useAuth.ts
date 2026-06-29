@@ -1,5 +1,6 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 
 /**
@@ -307,10 +308,13 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
         "Supabase client failed to load. Run `npm install @supabase/supabase-js` and reload.",
     };
   }
-  // Round-trip to Google then back to the app root, where AuthContext picks
-  // up the session via onAuthStateChange.
-  const redirectTo =
-    typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
+  // Choose a deep-link redirect for native builds so the callback returns
+  // into the Capacitor app instead of losing session state in the browser.
+  const redirectTo = typeof window !== "undefined"
+    ? Capacitor.isNativePlatform()
+      ? "com.compass.finance://auth/callback"
+      : `${window.location.origin}/`
+    : undefined;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
